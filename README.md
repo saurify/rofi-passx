@@ -1,4 +1,4 @@
-# cred-sync
+# rofi-passx
 
 A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetch credentials via Rofi, and onboard new users with GPG/pass setup.
 
@@ -11,16 +11,16 @@ A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetc
 
 ## Usage
 
-- `cred-sync import` — Launch import menu (backup Firefox/Chrome, import CSV)
-- `cred-sync launch` — Launch Rofi credential search/copy UI
-- `cred-sync onboard` — Run onboarding/setup
+- `rofi-passx import` — Launch import menu (backup Firefox/Chrome, import CSV)
+- `rofi-passx launch` — Launch Rofi credential search/copy UI
+- `rofi-passx onboard` — Run onboarding/setup
 
 ## Installation (Arch Linux)
 
 1. Clone this repo:
    ```sh
    git clone <repo-url>
-   cd cred-sync
+   cd rofi-passx
    ```
 2. Build and install:
    ```sh
