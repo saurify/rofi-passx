@@ -4,18 +4,18 @@ set -euo pipefail
 # === User Configurable Settings ===
 ICON_WEB="🌐"
 ICON_IMPORT="📥"
-ICON_FILE="📄"
-ICON_USER="👤"
-ICON_BACK="↩"
+ICON_FILE="📄 "
+ICON_USER="👤 "
+ICON_BACK="↩ "
 IMPORT_FOLDER="$HOME/Downloads"
 
 # === Config file support ===
-CONFIG_FILE="$HOME/.config/cred-sync.conf"
+CONFIG_FILE="$HOME/.config/rofi-passx/config.sh"
 ICON_WEB_DEFAULT="🌐"
 ICON_IMPORT_DEFAULT="📥"
-ICON_FILE_DEFAULT="📄"
-ICON_USER_DEFAULT="👤"
-ICON_BACK_DEFAULT="↩"
+ICON_FILE_DEFAULT="📄 "
+ICON_USER_DEFAULT="👤 "
+ICON_BACK_DEFAULT="↩ "
 IMPORT_FOLDER_DEFAULT="$HOME/Downloads"
 
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -33,13 +33,13 @@ IMPORT_FOLDER="${IMPORT_FOLDER:-$IMPORT_FOLDER_DEFAULT}"
 send_notify() {
     local message="$1"
     if command -v notify-send >/dev/null 2>&1; then
-        notify-send "cred-sync" "$message"
+        notify-send "rofi-passx" "$message"
     elif command -v zenity >/dev/null 2>&1; then
         zenity --info --text="$message"
     elif command -v kdialog >/dev/null 2>&1; then
         kdialog --msgbox "$message"
     else
-        echo "== cred-sync: $message =="
+        echo "== rofi-passx: $message =="
     fi
 }
 
@@ -48,7 +48,7 @@ open_settings() {
     mkdir -p "$(dirname "$CONFIG_FILE")"
     if [[ ! -f "$CONFIG_FILE" ]]; then
         cat > "$CONFIG_FILE" <<EOF
-# cred-sync user config
+# rofi-passx user config
 ICON_WEB="$ICON_WEB"
 ICON_IMPORT="$ICON_IMPORT"
 ICON_FILE="$ICON_FILE"
@@ -89,11 +89,11 @@ get_sites() {
     find ~/.password-store/web -type f -name '*.gpg' 2>/dev/null |
         sed 's|.gpg$||;s|.*/web/||' |
         awk -F/ '{print $1}' | sort -u |
-        awk -v icon="$ICON_WEB" '{print icon $0}'
+        awk -v icon="$ICON_WEB " '{print icon $0}'
 }
 
 get_users_for_site() {
-    local site="$1"
+    local site="$(echo "$1" | xargs)"
     find ~/.password-store/web/"$site" -type f -name '*.gpg' 2>/dev/null |
         sed 's|.gpg$||;s|.*/web/'"$site"'/||' | sort -u
 }
@@ -101,6 +101,36 @@ get_users_for_site() {
 is_pass_initialized() {
     pass git status &>/dev/null
 }
+
+check_dependencies() {
+    local missing=()
+    for cmd in rofi xclip pass notify-send bash; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            missing+=("$cmd")
+        fi
+    done
+    # Optionally check for wl-copy (Wayland clipboard)
+    if ! command -v xclip >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1; then
+        missing+=("xclip or wl-copy")
+    fi
+    if (( ${#missing[@]} )); then
+        echo "\n[rofi-passx] Missing dependencies: ${missing[*]}" >&2
+        echo "Please install them using your package manager (e.g., pacman -S rofi xclip pass libnotify bash)." >&2
+        exit 1
+    fi
+}
+
+check_dependencies
+
+# === Auto-onboard if nothing is set up ===
+if ! gpg --list-secret-keys &>/dev/null || ! pass git status &>/dev/null; then
+    WELCOME_MSG="<b><span size='x-large' foreground='#00B4D8'>👋 Welcome to rofi-passx!</span></b>\n\n"\
+"<span size='large' foreground='#FFA500'>Let's set up your password vault for the first time.</span>\n"\
+"You'll need a GPG key and to initialize pass.\n\n"\
+"Follow the prompts to get started."
+    rofi -e "$WELCOME_MSG" || echo "Welcome to rofi-passx! Let's set up your password vault."
+    /usr/bin/rofi-passx-onboard || send_notify "Error running onboarding. Please try again."
+fi
 
 main_menu() {
     local SITES MENU_ITEMS
@@ -114,7 +144,7 @@ main_menu() {
     fi
     MENU_ITEMS+=("$ICON_BACK Back")
 
-    local INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+    local INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 rofi-passx</span></b>
 
 <b><span size='large' foreground='#FFA500'>$ICON_WEB Select a site</span></b>  <span size='small'>Browse and copy credentials for a website</span>
 <b><span size='large' foreground='#FFA500'>$ICON_IMPORT Import Passwords</span></b>  <span size='small'>Bulk import from CSV file</span>
@@ -122,7 +152,7 @@ main_menu() {
 <b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to application launcher</span>
 
 <b><span size='small' foreground='#00B4D8'>CSV IMPORT FORMAT</span></b>
-<span font_family='monospace' size='small' foreground='#222222'>┌───────────────────────────────┬──────────────────────┬───────────────┐
+<span font_family='monospace' size='small' foreground='#FFA500'>┌───────────────────────────────┬──────────────────────┬───────────────┐
 │ url                           │ username             │ password      │
 ├───────────────────────────────┼──────────────────────┼───────────────┤
 │ https://github.com            │ someuser             │ supersecret   │
@@ -130,12 +160,12 @@ main_menu() {
 <span size='small' foreground='#888888'><i>Tip: Only these three fields are required. Place your CSV file in <b>$IMPORT_FOLDER</b> for import.</i></span>
 <span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
     INSTRUCTIONS="${INSTRUCTIONS//\\n/$'\n'}"
-    show_menu "cred-sync: Select site or action" "$INSTRUCTIONS" "${MENU_ITEMS[@]}"
+    show_menu "rofi-passx: Select site or action" "$INSTRUCTIONS" "${MENU_ITEMS[@]}"
 }
 
 import_menu() {
     local INSTRUCTIONS files=("$ICON_BACK Back")
-    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 rofi-passx</span></b>
 
 <b><span size='large' foreground='#FFA500'>$ICON_IMPORT Import Passwords</span></b>  <span size='small'>Bulk import credentials from a CSV file in <b>$IMPORT_FOLDER</b></span>
 <b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to main menu</span>
@@ -147,27 +177,28 @@ import_menu() {
 │ https://github.com            │ someuser             │ supersecret   │
 └───────────────────────────────┴──────────────────────┴───────────────┘</span>
 <span size='small' foreground='#888888'><i>Tip: Only these three fields are required. Place your CSV file in <b>$IMPORT_FOLDER</b> for import.</i></span>
-<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
+<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>
+"
     INSTRUCTIONS="${INSTRUCTIONS//\\n/$'\n'}"
     for f in "$IMPORT_FOLDER"/*.csv; do
         [[ -f "$f" ]] && files+=("$ICON_FILE$(basename "$f")")
     done
-    show_menu "cred-sync: $ICON_IMPORT Import CSV" "$INSTRUCTIONS" "${files[@]}"
+    show_menu "rofi-passx: $ICON_IMPORT Import CSV" "$INSTRUCTIONS" "${files[@]}"
 }
 
 user_menu() {
     local site="$1"
     local USERS INSTRUCTIONS
     USERS=$(get_users_for_site "$site")
-    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 rofi-passx</span></b>
 
 <b><span size='large' foreground='#FFA500'>👤 Select a username</span></b>  <span size='small'>Copy password to clipboard</span>
 <b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to site list</span>
 
 <span size='small' foreground='#888888'><i>Tip: Selecting a username copies its password to the clipboard.</i></span>\n<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
     local user_choices=("$ICON_BACK Back")
-    while read -r line; do [[ -n "$line" ]] && user_choices+=("$ICON_USER$line"); done <<< "$USERS"
-    show_menu "cred-sync: Users for $site" "$INSTRUCTIONS" "${user_choices[@]}"
+    while read -r line; do [[ -n "$line" ]] && user_choices+=("$ICON_USER $line"); done <<< "$USERS"
+    show_menu "rofi-passx: Users for $site" "$INSTRUCTIONS" "${user_choices[@]}"
 }
 
 copy_to_clipboard() {
@@ -193,8 +224,9 @@ copy_to_clipboard() {
 while true; do
     MENU=$(main_menu)
     case "$MENU" in
-        "$ICON_WEB"*)
+        "$ICON_WEB "*)
             SITE="${MENU#"$ICON_WEB"}"
+            SITE="$(echo "$SITE" | xargs)"
             while true; do
                 USER=$(user_menu "$SITE")
                 [[ "$USER" == "$ICON_BACK Back" || -z "$USER" ]] && break
@@ -209,7 +241,7 @@ while true; do
             FILE="$(echo "$FILE" | xargs)"
             FULL="$IMPORT_FOLDER/$FILE"
             if [[ -f "$FULL" ]]; then
-                if /usr/bin/cred-sync-import "$FULL"; then
+                if /usr/bin/rofi-passx-import "$FULL"; then
                     send_notify "✅ Password import successful!"
                 else
                     send_notify "❌ Password import failed!"
@@ -229,7 +261,7 @@ while true; do
             IMPORT_FOLDER="${IMPORT_FOLDER:-$IMPORT_FOLDER_DEFAULT}"
             ;;
         "Onboard")
-            /usr/bin/cred-sync-onboard || send_notify "Error running cred-sync-onboard"
+            /usr/bin/rofi-passx-onboard || send_notify "Error running rofi-passx-onboard"
             ;;
         "$ICON_BACK Back")
             rofi -show drun & disown

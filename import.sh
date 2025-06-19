@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # === Setup Logging ===
-LOGFILE="/tmp/cred-sync-import.log"
+LOGFILE="/tmp/rofi-passx-import.log"
 exec > >(tee -a "$LOGFILE") 2>&1
 echo
 echo "---- Starting import at $(date) ----"
@@ -86,12 +86,12 @@ tail -n +1 "$CSV_FILE" | awk -v OFS=',' '
     }
 
     END {
-        print "IMPORT_COUNT=" import_count > "/tmp/cred-sync-count";
+        print "IMPORT_COUNT=" import_count > "/tmp/rofi-passx-count";
     }
 '
 
 # === Final Notification ===
-source /tmp/cred-sync-count || IMPORT_COUNT=0
+source /tmp/rofi-passx-count || IMPORT_COUNT=0
 notify-send "✅ Imported $IMPORT_COUNT credentials from file."
 
 # === Optional Cleanup (disabled for debug) ===

@@ -1,28 +1,29 @@
-pkgname=cred-sync
-gitname=cred-sync
+pkgname=rofi-passx
+gitname=rofi-passx
 desc="Rofi-integrated password backup and fetch tool for pass"
 pkgver=1.0.0
 pkgrel=1
 arch=('any')
-url="https://github.com/example/cred-sync"
+url="https://github.com/example/rofi-passx"
 license=('MIT')
 depends=('bash' 'gnupg' 'pass' 'rofi' 'xclip' 'xdg-utils' 'coreutils' 'libnotify')
-install=cred-sync.install
+optdepends=('wl-clipboard: Wayland clipboard support')
+install=rofi-passx.install
 source=(
-    "cred-sync"
+    "rofi-passx"
     "onboard.sh"
     "import.sh"
     "launch.sh"
     "vault.sh"
-    "cred-sync.desktop"
+    "rofi-passx.desktop"
 )
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 package() {
-    install -Dm755 "$srcdir/cred-sync" "$pkgdir/usr/bin/cred-sync"
-    install -Dm755 "$srcdir/onboard.sh" "$pkgdir/usr/bin/cred-sync-onboard"
-    install -Dm755 "$srcdir/import.sh" "$pkgdir/usr/bin/cred-sync-import"
-    install -Dm755 "$srcdir/launch.sh" "$pkgdir/usr/bin/cred-sync-launch"
-    install -Dm755 "$srcdir/vault.sh" "$pkgdir/usr/lib/cred-sync-vault.sh"
-    install -Dm644 "$srcdir/cred-sync.desktop" "$pkgdir/usr/share/applications/cred-sync.desktop"
+    install -Dm755 "$srcdir/rofi-passx" "$pkgdir/usr/bin/rofi-passx"
+    install -Dm755 "$srcdir/onboard.sh" "$pkgdir/usr/bin/rofi-passx-onboard"
+    install -Dm755 "$srcdir/import.sh" "$pkgdir/usr/bin/rofi-passx-import"
+    install -Dm755 "$srcdir/launch.sh" "$pkgdir/usr/bin/rofi-passx-launch"
+    install -Dm755 "$srcdir/vault.sh" "$pkgdir/usr/lib/rofi-passx-vault.sh"
+    install -Dm644 "$srcdir/rofi-passx.desktop" "$pkgdir/usr/share/applications/rofi-passx.desktop"
 } 

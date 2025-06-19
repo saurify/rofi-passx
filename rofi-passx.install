@@ -1,0 +1,14 @@
+post_install() {
+    mkdir -p /etc/rofi-passx
+    if command -v rofi-passx-onboard &>/dev/null; then
+        sudo -u "$SUDO_USER" rofi-passx-onboard || true
+    fi
+}
+
+post_upgrade() {
+    :
+}
+
+pre_remove() {
+    :
+} 
