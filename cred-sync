@@ -1,0 +1,106 @@
+#!/bin/bash
+set -euo pipefail
+
+# Constants
+VAULT_PATH="${PASSWORD_STORE_DIR:-$HOME/.password-store}/web"
+WEB_ICON="🌐 "
+
+# Utility: sanitize input for file paths
+sanitize() {
+    echo "$1" | sed 's/[^a-zA-Z0-9_.@-]//g'
+}
+
+# Show a Rofi menu (no custom keybindings)
+show_menu() {
+    local prompt="$1"
+    local msg="$2"
+    shift 2
+    local choices=("$@")
+    printf "%s\n" "${choices[@]}" | rofi -dmenu -markup-rows -mesg "$msg" -p "$prompt"
+}
+
+get_sites() {
+    find "$VAULT_PATH" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/||' | awk -F/ '{print $1}' | sort -u | awk -v icon="$WEB_ICON" '{print icon $0}'
+}
+
+get_users_for_site() {
+    local site="$1"
+    find "$VAULT_PATH/$(sanitize "$site")" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/'"$(sanitize "$site")"'/||' | sort -u
+}
+
+is_pass_initialized() {
+    pass git status &>/dev/null
+}
+
+main_menu() {
+    local SITES INSTRUCTIONS MENU_ITEMS
+    SITES=$(get_sites)
+    INSTRUCTIONS="<b>Instructions:</b>
+- Select a site to view usernames.
+- Select 'Import Passwords from File' to import.
+- Select 'Exit' to quit.
+
+<b>CSV Import Format:</b>
+Required columns: url, username, password
+Example:
+https://github.com,someuser,supersecret"
+    MENU_ITEMS=( )
+    while read -r line; do [[ -n "$line" ]] && MENU_ITEMS+=("$line"); done <<< "$SITES"
+    MENU_ITEMS+=("Import Passwords from File" "Exit")
+    if ! is_pass_initialized; then
+        MENU_ITEMS+=("Onboard")
+    fi
+    show_menu "cred-sync: Select site or action" "$INSTRUCTIONS" "${MENU_ITEMS[@]}"
+}
+
+user_menu() {
+    local site="$1"
+    local USERS INSTRUCTIONS
+    USERS=$(get_users_for_site "$site")
+    INSTRUCTIONS="<b>Instructions:</b>
+- Select a username to copy its password.
+- Select 'Back' to return to the site list."
+    local user_choices=("Back")
+    while read -r line; do [[ -n "$line" ]] && user_choices+=("$line"); done <<< "$USERS"
+    show_menu "Usernames for $site:" "$INSTRUCTIONS" "${user_choices[@]}"
+}
+
+copy_to_clipboard() {
+    local site="$1" user="$2"
+    local pass_entry
+    pass_entry=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")" | head -n1)
+    echo -n "$pass_entry" | xclip -selection clipboard
+    # Truncate username for notification if too long
+    local user_disp="$user"
+    [[ ${#user_disp} -gt 32 ]] && user_disp="${user_disp:0:32}..."
+    notify-send "Password for $user_disp@$site copied to clipboard."
+}
+
+# Main flow
+while true; do
+    MENU=$(main_menu)
+    case "$MENU" in
+        "$WEB_ICON"*)
+            SITE=$(echo "$MENU" | sed "s/^$WEB_ICON//")
+            while true; do
+                USER=$(user_menu "$SITE")
+                if [[ "$USER" == "Back" || -z "$USER" ]]; then
+                    break  # Go back to site menu
+                fi
+                copy_to_clipboard "$SITE" "$USER"
+            done
+            ;;
+        "Import Passwords from File")
+            /usr/bin/cred-sync-import || echo "Error running cred-sync-import: $?"
+            ;;
+        "Onboard")
+            /usr/bin/cred-sync-onboard || echo "Error running cred-sync-onboard: $?"
+            ;;
+        "Exit"|"Back"|"")
+            break
+            ;;
+        *)
+            rofi -e "Unknown command: $MENU" || echo "Unknown command: $MENU"
+            ;;
+    esac
+done 

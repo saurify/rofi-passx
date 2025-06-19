@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=cred-sync
+Comment=Password manager Rofi launcher
+Exec=cred-sync launch
+Icon=dialog-password
+Terminal=false
+Categories=Utility;Security; 

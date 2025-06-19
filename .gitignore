@@ -1,0 +1,13 @@
+# Build and packaging artifacts
+pkg/
+*.pkg.tar.*
+*.tar.*
+*.zst
+*.log
+*.lock
+src/
+# Editor/OS files
+*~
+.DS_Store
+*.swp
+# Remove any other unwanted files here 
