@@ -19,7 +19,7 @@ A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetc
 
 1. Clone this repo:
    ```sh
-   git clone <repo-url>
+   git clone https://github.com/saurify/rofi-passx.git
    cd rofi-passx
    ```
 2. Build and install:
