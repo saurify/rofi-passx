@@ -33,3 +33,32 @@ A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetc
 
 ## License
 MIT 
+
+## Configuration Options
+
+You can customize the behavior of rofi-passx by editing `~/.config/rofi-passx/config.sh` (or via the Settings menu). The following options are available:
+
+- `ICON_WEB`, `ICON_IMPORT`, `ICON_FILE`, `ICON_USER`, `ICON_BACK`: Customize menu icons.
+- `IMPORT_FOLDER`: Folder to look for CSV imports.
+- `CLOSE_ON_EDIT`: If set to `1`, Rofi closes after editing an entry. Default: `0` (stay open).
+- `CLOSE_ON_COPY`: If set to `1`, Rofi closes after copying a password. Default: `0` (stay open).
+- `CLOSE_ON_DELETE`: If set to `1`, Rofi closes after deleting a user or site. Default: `0` (stay open).
+- `CLOSE_ON_NEW`: If set to `1`, Rofi closes after adding a new entry. Default: `0` (stay open).
+- `grep_case_sensitive`: If set to `1`, search results are case sensitive. Default: `0` (case insensitive).
+- `ENABLE_ALT_C`: If set to `1`, enables Alt+C shortcut for copy. Default: `1` (enabled).
+- `ENABLE_ALT_D`: If set to `1`, enables Alt+D shortcut for delete. Default: `1` (enabled).
+- `ENABLE_ALT_E`: If set to `1`, enables Alt+E shortcut for edit. Default: `1` (enabled).
+
+Example config:
+```sh
+ICON_WEB="🌐"
+IMPORT_FOLDER="$HOME/Downloads"
+CLOSE_ON_EDIT="1"
+CLOSE_ON_COPY="0"
+CLOSE_ON_DELETE="0"
+CLOSE_ON_NEW="1"
+grep_case_sensitive="1"
+ENABLE_ALT_C="1"
+ENABLE_ALT_D="1"
+ENABLE_ALT_E="1"
+``` 
