@@ -10,22 +10,25 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
 done
 
 # Welcome banner
-WELCOME_MSG="<b><span size='x-large' foreground='#00B4D8'>👋 Welcome to rofi-passx!</span></b>\n\n"\
-"<span size='large' foreground='#FFA500'>Let's set up your password vault for the first time.</span>\n"\
-"You'll need a GPG key and to initialize pass.\n"\
-"You will be asked for your <b>Name</b>, <b>Email</b>, and a <b>unique keyring name</b> (for your own reference).\n"\
-"<span size='small' foreground='#888888'><i>Press ESC at any prompt to cancel onboarding.</i></span>"
-WELCOME_MSG="${WELCOME_MSG//\\n/$'\n'}"
+WELCOME_MSG="<b><span size='large' foreground='#00B4D8'>👋 Welcome to rofi-passx!</span></b>
+<span size='medium' foreground='#FFA500'>Let's set up your password vault for the first time.</span>
+<span size='small' foreground='#888888'><i>You need a GPG key and to initialize pass. You will be asked for your <b>Name</b>, <b>Email</b>, and a <b>unique keyring name</b> (for your own reference).</i></span>
+<span size='x-small' foreground='#888888'><i>Press ESC at any prompt to cancel onboarding.</i></span>"
 rofi -e "$WELCOME_MSG" || echo "Welcome to rofi-passx! Let's set up your password vault."
 
 # Step-by-step input for Name, Email, Keyring Name
 while true; do
-    NAME=$(echo | rofi -dmenu -p "Enter your Name:" -mesg "<b><span size='large' foreground='#00B4D8'>Your Name</span></b>\n<span size='small' foreground='#FFA500'>This will be used for your GPG key.</span>")
-    [[ -z "$NAME" ]] && exit 1
-    EMAIL=$(echo | rofi -dmenu -p "Enter your Email:" -mesg "<b><span size='large' foreground='#00B4D8'>Your Email</span></b>\n<span size='small' foreground='#FFA500'>This will be used for your GPG key.</span>")
-    [[ -z "$EMAIL" ]] && exit 1
-    KEYRING_NAME=$(echo | rofi -dmenu -p "Keyring Name (unique):" -mesg "<b><span size='large' foreground='#00B4D8'>Keyring Name</span></b>\n<span size='small' foreground='#FFA500'>Choose a unique name for your keyring (for your own help, e.g. 'work-laptop-2024').</span>")
-    [[ -z "$KEYRING_NAME" ]] && exit 1
+    NAME=$(echo | rofi -dmenu -p "Enter your Name:" -mesg "<b><span size='medium' foreground='#00B4D8'>Your Name</span></b>
+<span size='small' foreground='#FFA500'>This will be used for your GPG key. (Required)</span>")
+    [[ -z "$NAME" ]] && rofi -e "Name is required." && continue
+    EMAIL=$(echo | rofi -dmenu -p "Enter your Email:" -mesg "<b><span size='medium' foreground='#00B4D8'>Your Email</span></b>
+<span size='small' foreground='#FFA500'>This will be used for your GPG key. (Required)</span>")
+    [[ -z "$EMAIL" ]] && rofi -e "Email is required." && continue
+    KEYRING_NAME=$(echo | rofi -dmenu -p "Keyring Name (unique):" -mesg "<b><span size='medium' foreground='#00B4D8'>Keyring Name</span></b>
+<span size='small' foreground='#FFA500'>Choose a unique name for your keyring (e.g. 'work-laptop-2024'). If left blank, your email will be used as the keyring name.</span>")
+    if [[ -z "$KEYRING_NAME" ]]; then
+        KEYRING_NAME="$EMAIL"
+    fi
     # Confirm
     CONFIRM=$(echo -e "Continue\nEdit" | rofi -dmenu -p "Proceed with these details?" -mesg "<b>Name:</b> $NAME\n<b>Email:</b> $EMAIL\n<b>Keyring Name:</b> $KEYRING_NAME")
     if [[ "$CONFIRM" == "Continue" ]]; then

@@ -48,6 +48,7 @@ You can customize the behavior of rofi-passx by editing `~/.config/rofi-passx/co
 - `ENABLE_ALT_C`: If set to `1`, enables Alt+C shortcut for copy. Default: `1` (enabled).
 - `ENABLE_ALT_D`: If set to `1`, enables Alt+D shortcut for delete. Default: `1` (enabled).
 - `ENABLE_ALT_E`: If set to `1`, enables Alt+E shortcut for edit. Default: `1` (enabled).
+- `ENABLE_GPG_KEY_SETTINGS`: If set to `1`, shows the GPG Key Settings menu for managing GPG keys. Default: `1` (enabled).
 
 Example config:
 ```sh
@@ -61,4 +62,5 @@ grep_case_sensitive="1"
 ENABLE_ALT_C="1"
 ENABLE_ALT_D="1"
 ENABLE_ALT_E="1"
+ENABLE_GPG_KEY_SETTINGS="1"
 ``` 

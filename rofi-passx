@@ -25,6 +25,9 @@ grep_case_sensitive_DEFAULT="0"
 ENABLE_ALT_C_DEFAULT="1"
 ENABLE_ALT_D_DEFAULT="1"
 ENABLE_ALT_E_DEFAULT="1"
+ENABLE_GPG_KEY_SETTINGS_DEFAULT="1"
+# 1 = mask password input; 0 = show in plain text
+HIDE_PASSWORD_DEFAULT="1"
 
 if [[ -f "$CONFIG_FILE" ]]; then
     source "$CONFIG_FILE"
@@ -44,6 +47,16 @@ grep_case_sensitive="${grep_case_sensitive:-$grep_case_sensitive_DEFAULT}"
 ENABLE_ALT_C="${ENABLE_ALT_C:-$ENABLE_ALT_C_DEFAULT}"
 ENABLE_ALT_D="${ENABLE_ALT_D:-$ENABLE_ALT_D_DEFAULT}"
 ENABLE_ALT_E="${ENABLE_ALT_E:-$ENABLE_ALT_E_DEFAULT}"
+ENABLE_GPG_KEY_SETTINGS="${ENABLE_GPG_KEY_SETTINGS:-$ENABLE_GPG_KEY_SETTINGS_DEFAULT}"
+# load our new setting
+HIDE_PASSWORD="${HIDE_PASSWORD:-$HIDE_PASSWORD_DEFAULT}"
+
+# build an array we can splice into any rofi call:
+if [[ "$HIDE_PASSWORD" == "1" ]]; then
+    PASS_PROMPT_FLAG=(-password)
+else
+    PASS_PROMPT_FLAG=()
+fi
 
 # === Fallback Notification ===
 send_notify() {
@@ -80,6 +93,7 @@ grep_case_sensitive="$grep_case_sensitive"
 ENABLE_ALT_C="$ENABLE_ALT_C"
 ENABLE_ALT_D="$ENABLE_ALT_D"
 ENABLE_ALT_E="$ENABLE_ALT_E"
+ENABLE_GPG_KEY_SETTINGS="$ENABLE_GPG_KEY_SETTINGS"
 EOF
     fi
 
@@ -164,6 +178,9 @@ main_menu() {
     while read -r line; do [[ -n "$line" ]] && MENU_ITEMS+=("$line"); done <<< "$SITES"
     MENU_ITEMS+=("➕ Add Entry Manually")
     MENU_ITEMS+=("$ICON_IMPORT Import Passwords from File")
+    if [[ "$ENABLE_GPG_KEY_SETTINGS" == "1" ]]; then
+        MENU_ITEMS+=("🔑 GPG Key Settings")
+    fi
     MENU_ITEMS+=("⚙️ Settings")
     if ! is_pass_initialized; then
         MENU_ITEMS+=("Onboard")
@@ -175,6 +192,7 @@ main_menu() {
 <b><span size='medium' foreground='#FFA500'>$ICON_WEB Select a site</span></b>  <span size='x-small'>Browse and copy credentials for a website</span>
 <b><span size='medium' foreground='#FFA500'>➕ Add Entry Manually</span></b>  <span size='x-small'>Add a new credential manually</span>
 <b><span size='medium' foreground='#FFA500'>$ICON_IMPORT Import Passwords</span></b>  <span size='x-small'>Bulk import from CSV file</span>
+<b><span size='medium' foreground='#FFA500'>🔑 GPG Key Settings</span></b>  <span size='x-small'>Manage GPG keys for your vault</span>
 <b><span size='medium' foreground='#FFA500'>⚙️ Settings</span></b>  <span size='x-small'>Edit icons and import folder</span>
 <b><span size='medium' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='x-small'>Return to application launcher</span>
 
@@ -220,7 +238,7 @@ user_menu() {
 <b><span size='medium' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='x-small'>Return to site list</span>
 "
     INSTRUCTIONS+="<span size='x-small' foreground='#888888'><i>Tip:"
-    if [[ "$ENABLE_ALT_C" == "1" ]]; then INSTRUCTIONS+=" <b>Alt+C</b> to copy password for a specific user.
+    if [[ "$ENABLE_ALT_C" == "1" ]]; then INSTRUCTIONS+=" <b>Alt+C</b> to copy username for a specific user.
     "; fi
     if [[ "$ENABLE_ALT_D" == "1" ]]; then INSTRUCTIONS+=" <b>Alt+D</b> to delete entry.
     "; fi
@@ -239,59 +257,119 @@ user_menu() {
     if [[ "$ENABLE_ALT_D" == "1" ]]; then rofi_args+=("-kb-custom-2" "alt+d"); fi
     if [[ "$ENABLE_ALT_E" == "1" ]]; then rofi_args+=("-kb-custom-3" "alt+e"); fi
     selection=$(printf "%s\n" "${user_choices[@]}" | rofi "${rofi_args[@]}")
-    rofi_exit=$?
-    if [[ "$ENABLE_ALT_C" == "1" && $rofi_exit -eq 10 ]]; then
-        user_to_copy=$(printf "%s\n" $USERS | rofi -dmenu -p "Copy password for which user?" -mesg "<b><span size='medium' foreground='#00B4D8'>Copy Password</span></b>")
-        [[ -z "$user_to_copy" ]] && return
-        copy_to_clipboard "$site" "$user_to_copy"
-        echo "__COPIED__"
-        return
-    elif [[ "$ENABLE_ALT_D" == "1" && $rofi_exit -eq 11 ]]; then
-        user_to_delete=$(printf "%s\n" $USERS | rofi -dmenu -p "Delete which user?" -mesg "<b><span size='medium' foreground='#FF0000'>Delete User</span></b>")
-        [[ -z "$user_to_delete" ]] && return
-        confirm=$(echo -e "Yes\nNo" | rofi -dmenu -p "Delete $user_to_delete@$site?" -mesg "<b><span size='medium' foreground='#FF0000'>Confirm Delete</span></b>")
-        if [[ "$confirm" == "Yes" ]]; then
-            rm -f ~/.password-store/web/"$site"/"$user_to_delete".gpg
-            send_notify "🗑️ User $user_to_delete@$site deleted."
-            if [[ "$CLOSE_ON_DELETE" == "1" ]]; then
-                rofi -e "User deleted. Closing." && exit 0
-            fi
-        fi
-        echo "__DELETED__"
-        return
-    elif [[ "$ENABLE_ALT_E" == "1" && $rofi_exit -eq 12 ]]; then
-        user_to_edit=$(printf "%s\n" $USERS | rofi -dmenu -p "Edit which user?" -mesg "<b><span size='medium' foreground='#00B4D8'>Edit User</span></b>")
-        [[ -z "$user_to_edit" ]] && return
-        edit_entry "$site" "$user_to_edit"
-        echo "__EDITED__"
+
+    # Alt+C pressed → copy *username* of the current selection
+    if [[ "$ENABLE_ALT_C" == "1" && $? -eq 10 ]]; then
+        copy_username_to_clipboard "$site" "$selection"
         return
     fi
+
+    # Enter pressed → copy *password* of the current selection
+    if [[ -n "$selection" && "$selection" != "$ICON_BACK Back" ]]; then
+        copy_to_clipboard "$site" "$selection"
+        return
+    fi
+
+    # "Back" or other commands just bubble up
     echo "$selection"
 }
 
 copy_to_clipboard() {
-    local site="$1" user="$2"
+    local site="$1"
+    local user="$2"
+    # strip any leading icon/whitespace
     user="${user#👤 }"
     user="$(echo "$user" | xargs)"
-    local pass_entry
-    pass_entry=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")" | head -n1)
 
-    if command -v xclip >/dev/null 2>&1; then
-        echo -n "$pass_entry" | xclip -selection clipboard
-    elif command -v wl-copy >/dev/null 2>&1; then
-        echo -n "$pass_entry" | wl-copy
-    else
-        send_notify "❌ No clipboard tool (xclip/wl-copy) found!"
-        return
+    # fetch raw entry (may contain literal "\n")
+    local raw
+    raw=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")") || {
+        send_notify "❌ Failed to show entry for $user@$site."
+        return 1
+    }
+
+    # expand \n into newlines, take first line, then clean it:
+    #  - remove any ",javascript:..." and everything after
+    #  - strip trailing commas
+    local pass_entry
+    pass_entry=$(
+        printf "%b" "$raw" \
+        | head -n1 \
+        | sed -E '
+            s/,*javascript:.*$//I
+            ; s/,+$//
+        '
+    )
+
+    if [[ -z "$pass_entry" ]]; then
+        send_notify "❌ No password found for $user@$site."
+        return 1
     fi
 
-    local user_disp="$user"
-    [[ ${#user_disp} -gt 32 ]] && user_disp="${user_disp:0:32}..."
-    send_notify "Password for $user_disp@$site copied to clipboard."
+    # copy to clipboard
+    if command -v xclip >/dev/null 2>&1; then
+        printf "%s" "$pass_entry" | xclip -selection clipboard
+    elif command -v wl-copy >/dev/null 2>&1; then
+        printf "%s" "$pass_entry" | wl-copy
+    else
+        send_notify "❌ No clipboard tool (xclip/wl-copy) found!"
+        return 1
+    fi
+
+    send_notify "🔒 Password for $user@$site copied to clipboard."
+
     if [[ "$CLOSE_ON_COPY" == "1" ]]; then
         rofi -e "Password copied. Closing." && exit 0
     fi
+
+    return 0
 }
+
+copy_username_to_clipboard() {
+    local site="$1"
+    local user="$2"
+    # strip any leading icon/whitespace
+    user="${user#👤 }"
+    user="$(echo "$user" | xargs)"
+    # fetch raw entry (may contain literal "\n")
+    local raw
+    raw=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")") || {
+        send_notify "❌ Failed to show entry for $user@$site."
+        return 1
+    }
+    # expand \n into actual newlines, strip CRs, extract first username: line
+    local username
+    username=$(
+        printf "%b" "$raw" \
+        | sed -E 's/\r//g' \
+        | sed -nEn 's/^[[:space:]]*username:[[:space:]]*//Ip' \
+        | head -n1
+    )
+
+    if [[ -z "$username" ]]; then
+        send_notify "❌ No username found for $user@$site."
+        return 1
+    fi
+
+    # copy to clipboard
+    if command -v xclip >/dev/null 2>&1; then
+        printf "%s" "$username" | xclip -selection clipboard
+    elif command -v wl-copy >/dev/null 2>&1; then
+        printf "%s" "$username" | wl-copy
+    else
+        send_notify "❌ No clipboard tool (xclip/wl-copy) found!"
+        return 1
+    fi
+
+    send_notify "👤 Username for $user@$site copied to clipboard."
+
+    if [[ "$CLOSE_ON_COPY" == "1" ]]; then
+        rofi -e "Username copied. Closing." && exit 0
+    fi
+
+    return 0
+}
+
 
 edit_entry() {
     local site="$1" user="$2"
@@ -301,18 +379,22 @@ edit_entry() {
     current_user=$(pass show "$entry_path" | grep '^username:' | cut -d' ' -f2-)
     current_site=$(pass show "$entry_path" | grep '^url:' | cut -d' ' -f2-)
     while true; do
-        new_site=$(echo "$current_site" | rofi -dmenu -p "Site (domain)" -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry</span></b>
+        new_site=$(echo "$current_site" | rofi -dmenu -p "Site (domain)" -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry for site: $site</span></b>
 <span size='small' foreground='#FFA500'>Edit the website domain</span>")
         new_site="$(sanitize "$new_site")"
         [[ -z "$new_site" ]] && return 1
-        new_user=$(echo "$current_user" | rofi -dmenu -p "Username" -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry</span></b>
+        new_user=$(echo "$current_user" | rofi -dmenu -p "Username" -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry for site: $site</span></b>
 <span size='small' foreground='#FFA500'>Edit the username for $new_site</span>")
         new_user="$(sanitize "$new_user")"
         [[ -z "$new_user" ]] && return 1
-        new_pass=$(echo "$current_pass" | rofi -dmenu -p "Password" -password -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry</span></b>
+        new_pass=$(echo "$current_pass" | rofi -dmenu \
+            "${PASS_PROMPT_FLAG[@]}" \
+            -p "Password" \
+            -mesg "<b><span size='large' foreground='#00B4D8'>Edit Entry for site: $site</span></b>
 <span size='small' foreground='#FFA500'>Edit the password for $new_user@$new_site</span>")
         [[ -z "$new_pass" ]] && return 1
-        confirm=$(echo -e "Save\nEdit" | rofi -dmenu -p "Save changes?" -mesg "<b>Site:</b> $new_site\n<b>Username:</b> $new_user")
+        confirm=$(echo -e "Save\nEdit" | rofi -dmenu -p "Save changes?" -mesg "<b>Site:</b> $new_site
+<b>Username:</b> $new_user")
         if [[ "$confirm" == "Save" ]]; then
             break
         fi
@@ -337,32 +419,291 @@ edit_entry() {
 
 manual_entry() {
     local site user pass confirm
+    # Multi-line Pango banner
+    local BANNER="<b><span size='medium' foreground='#00B4D8'>➕ Add Entry Manually</span></b>
+<span size='small' foreground='#FFA500'>Enter a new credential for your password vault.</span>
+<span size='small' foreground='#888888'><i>Fill in Site, Username, Password. Press ESC to cancel.</i></span>"
+
     while true; do
-        site=$(echo | rofi -dmenu -p "Site (domain)" -mesg "<b><span size='large' foreground='#00B4D8'>Add Entry Manually</span></b>
-<span size='small' foreground='#FFA500'>Enter the website domain (e.g. github.com)</span>")
-        site="$(sanitize "$site")"
+        # 1) Site prompt with banner
+        site=$(printf "" \
+            | rofi -dmenu -markup-rows \
+                   -mesg "$BANNER" \
+                   -p "Site (domain)")
+        site=$(sanitize "$site")
         [[ -z "$site" ]] && return
-        user=$(echo | rofi -dmenu -p "Username" -mesg "<b><span size='large' foreground='#00B4D8'>Add Entry Manually</span></b>
-<span size='small' foreground='#FFA500'>Enter the username for $site</span>")
-        user="$(sanitize "$user")"
+
+        # 2) Username prompt
+        user=$(printf "" \
+            | rofi -dmenu -markup-rows \
+                   -mesg "$BANNER" \
+                   -p "Username for $site")
+        user=$(sanitize "$user")
         [[ -z "$user" ]] && return
-        pass=$(echo | rofi -dmenu -p "Password" -password -mesg "<b><span size='large' foreground='#00B4D8'>Add Entry Manually</span></b>
-<span size='small' foreground='#FFA500'>Enter the password for $user@$site</span>")
+
+        # 3) Password prompt
+        pass=$(printf "" \
+            | rofi -dmenu -markup-rows \
+                   -mesg "$BANNER" \
+                   "${PASS_PROMPT_FLAG[@]}" \
+                   -p "Password for $user@$site")
         [[ -z "$pass" ]] && return
-        confirm=$(echo -e "Save\nEdit" | rofi -dmenu -p "Save this entry?" -mesg "<b>Site:</b> $site
-<b>Username:</b> $user")
+
+        # 4) Confirm or re-edit
+        confirm=$(printf "Save\nEdit" \
+            | rofi -dmenu -markup-rows \
+                   -mesg "<b>Site:</b> $site\n<b>Username:</b> $user" \
+                   -p "Save this entry?")
         [[ "$confirm" == "Save" ]] && break
+        # else loop again
     done
-    local insert_output
-    insert_output=$(echo -e "$pass\nusername: $user\nurl: $site" | pass insert -m -f "web/$site/$user" 2>&1)
-    if [[ $? -eq 0 ]]; then
+
+    # Insert into pass
+    if echo -e "$pass\nusername: $user\nurl: $site" \
+            | pass insert -m -f "web/$site/$user" 2>&1; then
         send_notify "✅ Entry for $user@$site added."
-        if [[ "$CLOSE_ON_NEW" == "1" ]]; then
-            rofi -e "Entry added. Closing." && exit 0
+        [[ "$CLOSE_ON_NEW" == "1" ]] && rofi -e "Entry added. Closing." && exit 0
+    else
+        send_notify "❌ Failed to add entry for $user@$site."
+    fi
+}
+
+
+gpg_key_settings_menu() {
+    while true; do
+        local GPG_KEYS CURRENT_KEY_ID MENU_ITEMS INSTRUCTIONS selection
+        set +e
+        GPG_KEYS=$(gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^sec:/ {print $5"|"$10"|"$11}')
+        if [[ $? -ne 0 ]]; then
+            send_notify "❌ Failed to list GPG keys. Is GPG installed and initialized?"
+            sleep 1
+            continue
+        fi
+        set -e
+        # Get current key from .gpg-id in password store
+        CURRENT_KEY_ID=""
+        if [[ -f "$HOME/.password-store/.gpg-id" ]]; then
+            CURRENT_KEY_ID=$(head -n1 "$HOME/.password-store/.gpg-id" | xargs)
+        fi
+        MENU_ITEMS=()
+        while IFS='|' read -r keyid uid _; do
+            if [[ -n "$CURRENT_KEY_ID" && "$keyid" == "$CURRENT_KEY_ID" ]]; then
+                MENU_ITEMS+=("<b><span foreground='#FFA500'>🔸 $uid ($keyid) [ACTIVE]</span></b>")
+            else
+                MENU_ITEMS+=("$uid ($keyid)")
+            fi
+        done <<< "$GPG_KEYS"
+        MENU_ITEMS+=("➕ Create New GPG Key")
+        MENU_ITEMS+=("✏️ Edit Existing GPG Key")
+        MENU_ITEMS+=("$ICON_BACK Back")
+        INSTRUCTIONS="<b><span size='large' foreground='#00B4D8'>🔑 GPG Key Settings</span></b>
+<span size='medium' foreground='#FFA500'>Manage your GPG keys for password encryption.</span>
+<span size='x-small' foreground='#888888'><i>Select a key to use for your vault, create a new one, or edit existing keys.</i></span>
+<span size='xx-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return.</i></span>"
+        selection=$(printf "%s\n" "${MENU_ITEMS[@]}" | rofi -dmenu -markup-rows -mesg "$INSTRUCTIONS" -p "GPG Key Settings")
+        if [[ "$selection" == "$ICON_BACK Back" || -z "$selection" ]]; then
+            break
+        elif [[ "$selection" == "➕ Create New GPG Key" ]]; then
+            onboard_gpg_key_creation || send_notify "GPG key creation cancelled or failed."
+            # After key creation, refresh site list
+            continue
+        elif [[ "$selection" == "✏️ Edit Existing GPG Key" ]]; then
+            edit_gpg_key_menu || send_notify "GPG key edit cancelled or failed."
+            continue
+        else
+            # User selected a key to use for pass
+            local selected_keyid
+            selected_keyid=$(echo "$selection" | grep -oE '\([A-F0-9]+\)' | tr -d '()')
+            if [[ -z "$selected_keyid" ]]; then
+                send_notify "No key selected."
+                continue
+            fi
+            if ! pass init "$selected_keyid"; then
+                send_notify "❌ Failed to set GPG key $selected_keyid for password store."
+            else
+                send_notify "🔑 Password store now uses GPG key $selected_keyid."
+            fi
+            # After switching key, refresh site list by breaking to main menu
+            break
+        fi
+    done
+}
+
+onboard_gpg_key_creation() {
+    set +e
+    local NAME EMAIL CONFIRM
+    while true; do
+        NAME=$(echo | rofi -dmenu -p "Enter your Name:" -mesg "<b><span size='medium' foreground='#00B4D8'>Your Name</span></b>
+<span size='small' foreground='#FFA500'>This will be used for your GPG key. (Required)</span>")
+        [[ -z "$NAME" ]] && send_notify "Name is required." && continue
+        EMAIL=$(echo | rofi -dmenu -p "Enter your Email:" -mesg "<b><span size='medium' foreground='#00B4D8'>Your Email</span></b>
+<span size='small' foreground='#FFA500'>This will be used for your GPG key. (Required)</span>")
+        [[ -z "$EMAIL" ]] && send_notify "Email is required." && continue
+        CONFIRM=$(echo -e "Continue\nEdit" | rofi -dmenu -p "Proceed with these details?" -mesg "<b>Name:</b> $NAME
+<b>Email:</b> $EMAIL")
+        if [[ "$CONFIRM" == "Continue" ]]; then
+            break
+        fi
+    done
+    local GPG_UID="$NAME <$EMAIL>"
+    if gpg --list-secret-keys --with-colons "$GPG_UID" 2>/dev/null | grep -q '^sec:'; then
+        send_notify "A GPG key for this identity already exists. Using existing key."
+    else
+        if ! gpg --batch --passphrase '' --quick-gen-key "$GPG_UID" default default never; then
+            send_notify "❌ Failed to create GPG key."
+            return 1
+        fi
+        send_notify "GPG key created for $EMAIL"
+    fi
+    local KEY_ID
+    KEY_ID=$(gpg --list-secret-keys --with-colons "$GPG_UID" 2>/dev/null | awk -F: '/^sec:/ {print $5}' | head -n1)
+    if [[ -n "$KEY_ID" ]]; then
+        if ! pass init "$KEY_ID"; then
+            send_notify "❌ Failed to set new GPG key for password store."
+        else
+            send_notify "🔑 Password store now uses GPG key $KEY_ID."
+        fi
+    fi
+    set -e
+    return 0
+}
+
+edit_gpg_key_menu() {
+    set +e
+    local GPG_KEYS MENU_ITEMS INSTRUCTIONS selection
+    GPG_KEYS=$(gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^sec:/ {print $5"|"$10"|"$11}')
+    if [[ $? -ne 0 ]]; then
+        send_notify "❌ Failed to list GPG keys for editing."
+        return 1
+    fi
+    MENU_ITEMS=()
+    while IFS='|' read -r keyid uid _; do
+        MENU_ITEMS+=("$uid ($keyid)")
+    done <<< "$GPG_KEYS"
+    MENU_ITEMS+=("$ICON_BACK Back")
+    INSTRUCTIONS="<b><span size='large' foreground='#FFA500'>✏️ Edit GPG Key</span></b>
+<span size='small' foreground='#FF0000'>⚠️ Warning: Editing GPG key names/emails is an advanced operation. Changing UIDs may affect your ability to decrypt old passwords if not handled carefully. Proceed only if you understand the risks.</span>
+<span size='x-small' foreground='#888888'><i>Select a key to edit, or Back to return.</i></span>"
+    selection=$(printf "%s\n" "${MENU_ITEMS[@]}" | rofi -dmenu -markup-rows -mesg "$INSTRUCTIONS" -p "Edit GPG Key")
+    if [[ "$selection" == "$ICON_BACK Back" || -z "$selection" ]]; then
+        return 0
+    fi
+    local keyid
+    keyid=$(echo "$selection" | grep -oE '\([A-F0-9]+\)' | tr -d '()')
+    if [[ -z "$keyid" ]]; then
+        send_notify "No key selected."
+        return 1
+    fi
+    local NEW_NAME NEW_EMAIL NEW_COMMENT CONFIRM
+    NEW_NAME=$(echo | rofi -dmenu -p "New Name (leave blank to keep)" -mesg "<b><span size='medium' foreground='#00B4D8'>Edit Name</span></b>")
+    NEW_EMAIL=$(echo | rofi -dmenu -p "New Email (leave blank to keep)" -mesg "<b><span size='medium' foreground='#00B4D8'>Edit Email</span></b>")
+    NEW_COMMENT=$(echo | rofi -dmenu -p "New Comment (leave blank to keep)" -mesg "<b><span size='medium' foreground='#00B4D8'>Edit Comment</span></b>")
+    CONFIRM=$(echo -e "Apply\nCancel" | rofi -dmenu -p "Apply changes?" -mesg "<b>Key:</b> $keyid\n<b>Name:</b> $NEW_NAME\n<b>Email:</b> $NEW_EMAIL\n<b>Comment:</b> $NEW_COMMENT")
+    if [[ "$CONFIRM" != "Apply" ]]; then
+        send_notify "Edit cancelled."
+        return 0
+    fi
+    local UID_ARGS=""
+    [[ -n "$NEW_NAME" ]] && UID_ARGS+="$NEW_NAME "
+    [[ -n "$NEW_EMAIL" ]] && UID_ARGS+="<$NEW_EMAIL>"
+    [[ -n "$NEW_COMMENT" ]] && UID_ARGS+=" ($NEW_COMMENT)"
+    if [[ -n "$UID_ARGS" ]]; then
+        if echo -e "adduid\n$UID_ARGS\nsave\n" | gpg --command-fd 0 --status-fd 1 --edit-key "$keyid"; then
+            send_notify "UID added to key $keyid."
+        else
+            send_notify "❌ Failed to edit GPG key $keyid."
         fi
     else
-        send_notify "❌ Failed to add entry for $user@$site.\n$insert_output"
+        send_notify "No changes made."
     fi
+    set -e
+    return 0
+}
+
+open_settings_menu() {
+    local MENU_ITEMS selection msg
+    if [[ -f "$CONFIG_FILE" ]]; then
+        MENU_ITEMS=("Open config file" "Regenerate config with defaults" "$ICON_BACK Back")
+        msg="<b><span size='medium' foreground='#00B4D8'>rofi-passx Settings</span></b>
+<span size='small' foreground='#FFA500'>Edit or reset your configuration file.</span>
+<span size='x-small' foreground='#888888'><i>Current config: <b>$CONFIG_FILE</b></i></span>"
+    else
+        MENU_ITEMS=("Create config file" "$ICON_BACK Back")
+        msg="<b><span size='medium' foreground='#00B4D8'>rofi-passx Settings</span></b>
+<span size='small' foreground='#FFA500'>No config file found. You can create one with defaults.</span>
+<span size='x-small' foreground='#888888'><i>Config path: <b>$CONFIG_FILE</b></i></span>"
+    fi
+    selection=$(printf "%s\n" "${MENU_ITEMS[@]}" | rofi -dmenu -markup-rows -mesg "$msg" -p "Settings")
+    case "$selection" in
+        "Open config file")
+            if [[ -f "$CONFIG_FILE" ]]; then
+                open_settings
+            else
+                rofi -e "No config file found to open. Use 'Create config file' to generate one."
+            fi
+            ;;
+        "Regenerate config with defaults")
+            if [[ -f "$CONFIG_FILE" ]]; then
+                local bak="$CONFIG_FILE.bak.$(date +%s)"
+                cp "$CONFIG_FILE" "$bak"
+                cat > "$CONFIG_FILE" <<EOF
+# rofi-passx user config (regenerated)
+ICON_WEB="$ICON_WEB_DEFAULT"
+ICON_IMPORT="$ICON_IMPORT_DEFAULT"
+ICON_FILE="$ICON_FILE_DEFAULT"
+ICON_USER="$ICON_USER_DEFAULT"
+ICON_BACK="$ICON_BACK_DEFAULT"
+IMPORT_FOLDER="$IMPORT_FOLDER_DEFAULT"
+CLOSE_ON_EDIT="$CLOSE_ON_EDIT_DEFAULT"
+CLOSE_ON_COPY="$CLOSE_ON_COPY_DEFAULT"
+CLOSE_ON_DELETE="$CLOSE_ON_DELETE_DEFAULT"
+CLOSE_ON_NEW="$CLOSE_ON_NEW_DEFAULT"
+grep_case_sensitive="$grep_case_sensitive_DEFAULT"
+ENABLE_ALT_C="$ENABLE_ALT_C_DEFAULT"
+ENABLE_ALT_D="$ENABLE_ALT_D_DEFAULT"
+ENABLE_ALT_E="$ENABLE_ALT_E_DEFAULT"
+ENABLE_GPG_KEY_SETTINGS="$ENABLE_GPG_KEY_SETTINGS_DEFAULT"
+HIDE_PASSWORD="$HIDE_PASSWORD_DEFAULT"
+EOF
+                rofi -e "Config regenerated with defaults. Backup saved as $bak."
+            else
+                rofi -e "No config file to regenerate. Use 'Create config file' to generate one."
+            fi
+            ;;
+        "Create config file")
+            if [[ -f "$CONFIG_FILE" ]]; then
+                rofi -e "Config file already exists. Use 'Regenerate config with defaults' to reset."
+            else
+                mkdir -p "$(dirname "$CONFIG_FILE")"
+                cat > "$CONFIG_FILE" <<EOF
+# rofi-passx user config (created)
+ICON_WEB="$ICON_WEB_DEFAULT"
+ICON_IMPORT="$ICON_IMPORT_DEFAULT"
+ICON_FILE="$ICON_FILE_DEFAULT"
+ICON_USER="$ICON_USER_DEFAULT"
+ICON_BACK="$ICON_BACK_DEFAULT"
+IMPORT_FOLDER="$IMPORT_FOLDER_DEFAULT"
+CLOSE_ON_EDIT="$CLOSE_ON_EDIT_DEFAULT"
+CLOSE_ON_COPY="$CLOSE_ON_COPY_DEFAULT"
+CLOSE_ON_DELETE="$CLOSE_ON_DELETE_DEFAULT"
+CLOSE_ON_NEW="$CLOSE_ON_NEW_DEFAULT"
+grep_case_sensitive="$grep_case_sensitive_DEFAULT"
+ENABLE_ALT_C="$ENABLE_ALT_C_DEFAULT"
+ENABLE_ALT_D="$ENABLE_ALT_D_DEFAULT"
+ENABLE_ALT_E="$ENABLE_ALT_E_DEFAULT"
+ENABLE_GPG_KEY_SETTINGS="$ENABLE_GPG_KEY_SETTINGS_DEFAULT"
+HIDE_PASSWORD="$HIDE_PASSWORD_DEFAULT"
+EOF
+                rofi -e "Config file created with defaults. You can now open and edit it."
+            fi
+            ;;
+        "$ICON_BACK Back")
+            return
+            ;;
+        *)
+            rofi -e "Unknown selection."
+            ;;
+    esac
 }
 
 # === Main Flow ===
@@ -426,8 +767,11 @@ while true; do
                 send_notify "❌ File not found: $FULL"
             fi
             ;;
+        "🔑 GPG Key Settings")
+            gpg_key_settings_menu
+            ;;
         "⚙️ Settings")
-            open_settings
+            open_settings_menu
             source "$CONFIG_FILE"
             ICON_WEB="${ICON_WEB:-$ICON_WEB_DEFAULT}"
             ICON_IMPORT="${ICON_IMPORT:-$ICON_IMPORT_DEFAULT}"
