@@ -1,29 +1,101 @@
 #!/bin/bash
 set -euo pipefail
 
-WEB_ICON="🌐 "
+# === User Configurable Settings ===
+ICON_WEB="🌐"
+ICON_IMPORT="📥"
+ICON_FILE="📄"
+ICON_USER="👤"
+ICON_BACK="↩"
+IMPORT_FOLDER="$HOME/Downloads"
 
-# Utility: sanitize input for file paths
+# === Config file support ===
+CONFIG_FILE="$HOME/.config/cred-sync.conf"
+ICON_WEB_DEFAULT="🌐"
+ICON_IMPORT_DEFAULT="📥"
+ICON_FILE_DEFAULT="📄"
+ICON_USER_DEFAULT="👤"
+ICON_BACK_DEFAULT="↩"
+IMPORT_FOLDER_DEFAULT="$HOME/Downloads"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+fi
+
+ICON_WEB="${ICON_WEB:-$ICON_WEB_DEFAULT}"
+ICON_IMPORT="${ICON_IMPORT:-$ICON_IMPORT_DEFAULT}"
+ICON_FILE="${ICON_FILE:-$ICON_FILE_DEFAULT}"
+ICON_USER="${ICON_USER:-$ICON_USER_DEFAULT}"
+ICON_BACK="${ICON_BACK:-$ICON_BACK_DEFAULT}"
+IMPORT_FOLDER="${IMPORT_FOLDER:-$IMPORT_FOLDER_DEFAULT}"
+
+# === Fallback Notification ===
+send_notify() {
+    local message="$1"
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "cred-sync" "$message"
+    elif command -v zenity >/dev/null 2>&1; then
+        zenity --info --text="$message"
+    elif command -v kdialog >/dev/null 2>&1; then
+        kdialog --msgbox "$message"
+    else
+        echo "== cred-sync: $message =="
+    fi
+}
+
+# === Editor Handler (Universal) ===
+open_settings() {
+    mkdir -p "$(dirname "$CONFIG_FILE")"
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        cat > "$CONFIG_FILE" <<EOF
+# cred-sync user config
+ICON_WEB="$ICON_WEB"
+ICON_IMPORT="$ICON_IMPORT"
+ICON_FILE="$ICON_FILE"
+ICON_USER="$ICON_USER"
+ICON_BACK="$ICON_BACK"
+IMPORT_FOLDER="$IMPORT_FOLDER"
+EOF
+    fi
+
+    if [[ -n "${EDITOR:-}" && -x "$(command -v "$EDITOR" 2>/dev/null)" ]]; then
+        "$EDITOR" "$CONFIG_FILE" && return
+    fi
+
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$CONFIG_FILE" && return
+    fi
+
+    for editor in gnome-text-editor kate mousepad leafpad xed code gedit sublime_text nano vi; do
+        if command -v "$editor" >/dev/null 2>&1; then
+            "$editor" "$CONFIG_FILE" && return
+        fi
+    done
+
+    send_notify "❌ Unable to open settings file. Please edit it manually: $CONFIG_FILE"
+}
+
 sanitize() {
     echo "$1" | sed 's/[^a-zA-Z0-9_.@-]//g'
 }
 
-# Show a Rofi menu (no custom keybindings)
 show_menu() {
-    local prompt="$1"
-    local msg="$2"
+    local prompt="$1" msg="$2"
     shift 2
-    local choices=("$@")
-    printf "%s\n" "${choices[@]}" | rofi -dmenu -markup-rows -mesg "$msg" -p "$prompt"
+    printf "%s\n" "$@" | rofi -dmenu -markup-rows -mesg "$msg" -p "$prompt"
 }
 
 get_sites() {
-    find ~/.password-store/web -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/||' | awk -F/ '{print $1}' | sort -u | awk -v icon="$WEB_ICON" '{print icon $0}'
+    find ~/.password-store/web -type f -name '*.gpg' 2>/dev/null |
+        sed 's|.gpg$||;s|.*/web/||' |
+        awk -F/ '{print $1}' | sort -u |
+        awk -v icon="$ICON_WEB" '{print icon $0}'
 }
 
 get_users_for_site() {
     local site="$1"
-    find ~/.password-store/web/"$site" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/'"$site"'/||' | sort -u
+    find ~/.password-store/web/"$site" -type f -name '*.gpg' 2>/dev/null |
+        sed 's|.gpg$||;s|.*/web/'"$site"'/||' | sort -u
 }
 
 is_pass_initialized() {
@@ -31,74 +103,140 @@ is_pass_initialized() {
 }
 
 main_menu() {
-    local SITES INSTRUCTIONS MENU_ITEMS
+    local SITES MENU_ITEMS
     SITES=$(get_sites)
-    INSTRUCTIONS="<b>Instructions:</b>
-- Select a site to view usernames.
-- Select 'Import Passwords from File' to import.
-- Press Escape or Backspace to return to the main Rofi menu.
-
-<b>CSV Import Format:</b>
-Required columns: url, username, password
-Example:
-https://github.com,someuser,supersecret"
-    MENU_ITEMS=( )
+    MENU_ITEMS=()
     while read -r line; do [[ -n "$line" ]] && MENU_ITEMS+=("$line"); done <<< "$SITES"
-    MENU_ITEMS+=("Import Passwords from File")
+    MENU_ITEMS+=("$ICON_IMPORT Import Passwords from File")
+    MENU_ITEMS+=("⚙️ Settings")
     if ! is_pass_initialized; then
         MENU_ITEMS+=("Onboard")
     fi
+    MENU_ITEMS+=("$ICON_BACK Back")
+
+    local INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+
+<b><span size='large' foreground='#FFA500'>$ICON_WEB Select a site</span></b>  <span size='small'>Browse and copy credentials for a website</span>
+<b><span size='large' foreground='#FFA500'>$ICON_IMPORT Import Passwords</span></b>  <span size='small'>Bulk import from CSV file</span>
+<b><span size='large' foreground='#FFA500'>⚙️ Settings</span></b>  <span size='small'>Edit icons and import folder</span>
+<b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to application launcher</span>
+
+<b><span size='small' foreground='#00B4D8'>CSV IMPORT FORMAT</span></b>
+<span font_family='monospace' size='small' foreground='#222222'>┌───────────────────────────────┬──────────────────────┬───────────────┐
+│ url                           │ username             │ password      │
+├───────────────────────────────┼──────────────────────┼───────────────┤
+│ https://github.com            │ someuser             │ supersecret   │
+└───────────────────────────────┴──────────────────────┴───────────────┘</span>
+<span size='small' foreground='#888888'><i>Tip: Only these three fields are required. Place your CSV file in <b>$IMPORT_FOLDER</b> for import.</i></span>
+<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
+    INSTRUCTIONS="${INSTRUCTIONS//\\n/$'\n'}"
     show_menu "cred-sync: Select site or action" "$INSTRUCTIONS" "${MENU_ITEMS[@]}"
+}
+
+import_menu() {
+    local INSTRUCTIONS files=("$ICON_BACK Back")
+    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+
+<b><span size='large' foreground='#FFA500'>$ICON_IMPORT Import Passwords</span></b>  <span size='small'>Bulk import credentials from a CSV file in <b>$IMPORT_FOLDER</b></span>
+<b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to main menu</span>
+
+<b><span size='small' foreground='#00B4D8'>CSV IMPORT FORMAT</span></b>
+<span font_family='monospace' size='small' foreground='#222222'>┌───────────────────────────────┬──────────────────────┬───────────────┐
+│ url                           │ username             │ password      │
+├───────────────────────────────┼──────────────────────┼───────────────┤
+│ https://github.com            │ someuser             │ supersecret   │
+└───────────────────────────────┴──────────────────────┴───────────────┘</span>
+<span size='small' foreground='#888888'><i>Tip: Only these three fields are required. Place your CSV file in <b>$IMPORT_FOLDER</b> for import.</i></span>
+<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
+    INSTRUCTIONS="${INSTRUCTIONS//\\n/$'\n'}"
+    for f in "$IMPORT_FOLDER"/*.csv; do
+        [[ -f "$f" ]] && files+=("$ICON_FILE$(basename "$f")")
+    done
+    show_menu "cred-sync: $ICON_IMPORT Import CSV" "$INSTRUCTIONS" "${files[@]}"
 }
 
 user_menu() {
     local site="$1"
     local USERS INSTRUCTIONS
     USERS=$(get_users_for_site "$site")
-    INSTRUCTIONS="<b>Instructions:</b>
-- Select a username to copy its password.
-- Select 'Back' to return to the site list."
-    local user_choices=("Back")
-    while read -r line; do [[ -n "$line" ]] && user_choices+=("$line"); done <<< "$USERS"
-    show_menu "Usernames for $site:" "$INSTRUCTIONS" "${user_choices[@]}"
+    INSTRUCTIONS="<b><span size='x-large' foreground='#00B4D8'>📋 cred-sync</span></b>
+
+<b><span size='large' foreground='#FFA500'>👤 Select a username</span></b>  <span size='small'>Copy password to clipboard</span>
+<b><span size='large' foreground='#FFA500'>$ICON_BACK Back</span></b>  <span size='small'>Return to site list</span>
+
+<span size='small' foreground='#888888'><i>Tip: Selecting a username copies its password to the clipboard.</i></span>\n<span size='x-small' foreground='#888888'><i>Use <b>ESC</b> or select <b>$ICON_BACK Back</b> to return at any time.</i></span>"
+    local user_choices=("$ICON_BACK Back")
+    while read -r line; do [[ -n "$line" ]] && user_choices+=("$ICON_USER$line"); done <<< "$USERS"
+    show_menu "cred-sync: Users for $site" "$INSTRUCTIONS" "${user_choices[@]}"
 }
 
 copy_to_clipboard() {
-    local site="$1" user="$2"
+    local site="$1" user="${2#👤 }"
     local pass_entry
-    pass_entry=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")" | head -n1)
-    echo -n "$pass_entry" | xclip -selection clipboard
-    # Truncate username for notification if too long
+    pass_entry=$(pass show "web/$(sanitize "$site")/$(sanitize "$user")" | grep -o '^[^,]*')
+
+    if command -v xclip >/dev/null 2>&1; then
+        echo -n "$pass_entry" | xclip -selection clipboard
+    elif command -v wl-copy >/dev/null 2>&1; then
+        echo -n "$pass_entry" | wl-copy
+    else
+        send_notify "❌ No clipboard tool (xclip/wl-copy) found!"
+        return
+    fi
+
     local user_disp="$user"
     [[ ${#user_disp} -gt 32 ]] && user_disp="${user_disp:0:32}..."
-    notify-send "Password for $user_disp@$site copied to clipboard."
+    send_notify "Password for $user_disp@$site copied to clipboard."
 }
 
-# Main flow
+# === Main Flow ===
 while true; do
     MENU=$(main_menu)
     case "$MENU" in
-        "$WEB_ICON"*)
-            SITE=$(echo "$MENU" | sed "s/^$WEB_ICON//")
+        "$ICON_WEB"*)
+            SITE="${MENU#"$ICON_WEB"}"
             while true; do
                 USER=$(user_menu "$SITE")
-                if [[ "$USER" == "Back" || -z "$USER" ]]; then
-                    break  # Go back to site menu
-                fi
+                [[ "$USER" == "$ICON_BACK Back" || -z "$USER" ]] && break
                 copy_to_clipboard "$SITE" "$USER"
             done
             ;;
-        "Import Passwords from File")
-            /usr/bin/cred-sync-import || echo "Error running cred-sync-import: $?"
+        "$ICON_IMPORT Import Passwords from File")
+            FILE=$(import_menu)
+            FILE="${FILE#$ICON_FILE}"
+            FILE="${FILE#$ICON_BACK Back}"
+            [[ -z "$FILE" || "$FILE" == "Back" ]] && continue
+            FILE="$(echo "$FILE" | xargs)"
+            FULL="$IMPORT_FOLDER/$FILE"
+            if [[ -f "$FULL" ]]; then
+                if /usr/bin/cred-sync-import "$FULL"; then
+                    send_notify "✅ Password import successful!"
+                else
+                    send_notify "❌ Password import failed!"
+                fi
+            else
+                send_notify "❌ File not found: $FULL"
+            fi
+            ;;
+        "⚙️ Settings")
+            open_settings
+            source "$CONFIG_FILE"
+            ICON_WEB="${ICON_WEB:-$ICON_WEB_DEFAULT}"
+            ICON_IMPORT="${ICON_IMPORT:-$ICON_IMPORT_DEFAULT}"
+            ICON_FILE="${ICON_FILE:-$ICON_FILE_DEFAULT}"
+            ICON_USER="${ICON_USER:-$ICON_USER_DEFAULT}"
+            ICON_BACK="${ICON_BACK:-$ICON_BACK_DEFAULT}"
+            IMPORT_FOLDER="${IMPORT_FOLDER:-$IMPORT_FOLDER_DEFAULT}"
             ;;
         "Onboard")
-            /usr/bin/cred-sync-onboard || echo "Error running cred-sync-onboard: $?"
+            /usr/bin/cred-sync-onboard || send_notify "Error running cred-sync-onboard"
             ;;
-        "Back"|"")
+        "$ICON_BACK Back")
+            rofi -show drun & disown
             break
             ;;
         *)
-            rofi -e "Unknown command: $MENU" || echo "Unknown command: $MENU"
+            send_notify "❓ Unknown command: $MENU"
             ;;
     esac
-done 
+done
