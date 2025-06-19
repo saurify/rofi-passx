@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Constants
-VAULT_PATH="${PASSWORD_STORE_DIR:-$HOME/.password-store}/web"
 WEB_ICON="🌐 "
 
 # Utility: sanitize input for file paths
@@ -20,12 +18,12 @@ show_menu() {
 }
 
 get_sites() {
-    find "$VAULT_PATH" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/||' | awk -F/ '{print $1}' | sort -u | awk -v icon="$WEB_ICON" '{print icon $0}'
+    find ~/.password-store/web -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/||' | awk -F/ '{print $1}' | sort -u | awk -v icon="$WEB_ICON" '{print icon $0}'
 }
 
 get_users_for_site() {
     local site="$1"
-    find "$VAULT_PATH/$(sanitize "$site")" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/'"$(sanitize "$site")"'/||' | sort -u
+    find ~/.password-store/web/"$site" -type f -name '*.gpg' 2>/dev/null | sed 's|.gpg$||;s|.*/web/'"$site"'/||' | sort -u
 }
 
 is_pass_initialized() {
@@ -38,7 +36,7 @@ main_menu() {
     INSTRUCTIONS="<b>Instructions:</b>
 - Select a site to view usernames.
 - Select 'Import Passwords from File' to import.
-- Select 'Exit' to quit.
+- Press Escape or Backspace to return to the main Rofi menu.
 
 <b>CSV Import Format:</b>
 Required columns: url, username, password
@@ -46,7 +44,7 @@ Example:
 https://github.com,someuser,supersecret"
     MENU_ITEMS=( )
     while read -r line; do [[ -n "$line" ]] && MENU_ITEMS+=("$line"); done <<< "$SITES"
-    MENU_ITEMS+=("Import Passwords from File" "Exit")
+    MENU_ITEMS+=("Import Passwords from File")
     if ! is_pass_initialized; then
         MENU_ITEMS+=("Onboard")
     fi
@@ -96,7 +94,7 @@ while true; do
         "Onboard")
             /usr/bin/cred-sync-onboard || echo "Error running cred-sync-onboard: $?"
             ;;
-        "Exit"|"Back"|"")
+        "Back"|"")
             break
             ;;
         *)
