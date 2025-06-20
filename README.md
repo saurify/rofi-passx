@@ -2,6 +2,8 @@
 
 
 (undewr developmemt, this is probably outdated)
+
+
 A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetch credentials via Rofi, and onboard new users with GPG/pass setup.
 
 ## Features
@@ -17,7 +19,7 @@ A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetc
 - `rofi-passx launch` — Launch Rofi credential search/copy UI
 - `rofi-passx onboard` — Run onboarding/setup
 
-## Installation (Arch Linux)
+## Installation
 
 1. Clone this repo:
    ```sh
