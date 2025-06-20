@@ -1,5 +1,7 @@
 # rofi-passx
 
+
+(undewr developmemt, this is probably outdated)
 A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetch credentials via Rofi, and onboard new users with GPG/pass setup.
 
 ## Features
