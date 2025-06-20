@@ -7,11 +7,6 @@ set -euo pipefail
 #  – source $CONFIG_FILE
 #  – apply overrides
 # ============================================================================
-ICON_WEB_DEFAULT="🌐"
-ICON_IMPORT_DEFAULT="📥"
-ICON_FILE_DEFAULT="📄 "
-ICON_USER_DEFAULT="👤 "
-ICON_BACK_DEFAULT="↩ "
 IMPORT_FOLDER_DEFAULT="$HOME/Downloads"
 
 CLOSE_ON_EDIT_DEFAULT=0
@@ -32,11 +27,6 @@ CONFIG_FILE="$HOME/.config/rofi-passx/config.sh"
 [[ -f $CONFIG_FILE ]] && source "$CONFIG_FILE"
 
 # now assign each final var (override default if user set in $CONFIG_FILE)
-ICON_WEB="${ICON_WEB:-$ICON_WEB_DEFAULT}"
-ICON_IMPORT="${ICON_IMPORT:-$ICON_IMPORT_DEFAULT}"
-ICON_FILE="${ICON_FILE:-$ICON_FILE_DEFAULT}"
-ICON_USER="${ICON_USER:-$ICON_USER_DEFAULT}"
-ICON_BACK="${ICON_BACK:-$ICON_BACK_DEFAULT}"
 IMPORT_FOLDER="${IMPORT_FOLDER:-$IMPORT_FOLDER_DEFAULT}"
 
 CLOSE_ON_EDIT="${CLOSE_ON_EDIT:-$CLOSE_ON_EDIT_DEFAULT}"
@@ -141,7 +131,7 @@ get_sites() {
       | sed 's|.gpg$||;s|.*/web/||' \
       | cut -d/ -f1 \
       | sort -u \
-      | xargs -I{} printf "%s%s\n" "$ICON_WEB" {}
+      | xargs -I{} printf "%s%s\n" {}
 }
 
 get_users_for_site() {
@@ -177,7 +167,7 @@ check_dependencies
 #  – (onboarding logic skipped for now)
 # ============================================================================
 gpg_key_settings_menu() {
-    # stub: we’ll revisit onboarding & key‐edit later.
+    # stub: we'll revisit onboarding & key-edit later.
     send_notify "🔑 GPG settings (skipped for this refactor)."
 }
 
@@ -197,33 +187,33 @@ main_menu() {
     items=()
     while read -r s; do [[ -n "$s" ]] && items+=("$s"); done <<<"$sites"
     items+=("➕ Add Entry Manually")
-    items+=("$ICON_IMPORT Import Passwords from File")
+    items+=("📥 Import Passwords from File")
     [[ "$ENABLE_GPG_KEY_SETTINGS" -eq 1 ]] && items+=("🔑 GPG Key Settings")
     items+=("⚙️ Settings")
     is_pass_initialized || items+=("Onboard")
-    items+=("$ICON_BACK Back")
+    items+=("↩ Back")
 
     local mesg="…(copy the exact same Pango instructions here)…"
     rofi_menu "rofi-passx: Select site or action" "$mesg" "${items[@]}"
 }
 
 import_menu() {
-    local files=("$ICON_BACK Back") f
-    for f in "$IMPORT_FOLDER"/*.csv; do [[ -f $f ]] && files+=("$ICON_FILE$(basename "$f")"); done
-    local mesg="…(copy exact CSV‐import instructions)…"
-    rofi_menu "rofi-passx: $ICON_IMPORT Import CSV" "$mesg" "${files[@]}"
+    local files=("↩ Back") f
+    for f in "$IMPORT_FOLDER"/*.csv; do [[ -f $f ]] && files+=("$f"); done
+    local mesg="…(copy exact CSV-import instructions)…"
+    rofi_menu "rofi-passx: 📥 Import CSV" "$mesg" "${files[@]}"
 }
 
 user_menu() {
     local site="$1" users sel mesg
     users=$(get_users_for_site "$site")
-    mesg="…(copy exact user‐menu instructions, including Alt‐key tips)…"
+    mesg="…(copy exact user-menu instructions, including Alt-key tips)…"
     local args=(-dmenu -markup-rows -mesg "$mesg" -p "Users for $site")
     $ENABLE_ALT_C && args+=(-kb-custom-1 alt+c)
     $ENABLE_ALT_D && args+=(-kb-custom-2 alt+d)
     $ENABLE_ALT_E && args+=(-kb-custom-3 alt+e)
 
-    sel=$(printf "%s\n$ICON_BACK Back\n$users\n✏️ Edit Entry\n🗑️ Delete this site\n" \
+    sel=$(printf "%s\n↩ Back\n$users\n✏️ Edit Entry\n🗑️ Delete this site\n" \
            | rofi "${args[@]}")
     echo "$sel"
 }
