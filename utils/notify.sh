@@ -59,12 +59,58 @@ _notify() {
   fi
 }
 
-# Public wrappers
+# notify_copy()
+#   Shows notification when password is copied to clipboard.
+#   Returns: 0 on success
+#   Example: notify_copy "Password copied to clipboard"
+#   Output: Desktop notification or echo to stderr
 notify_copy()       { _notify copy       "$1"; }
+
+# notify_delete()
+#   Shows notification when entry is deleted.
+#   Returns: 0 on success
+#   Example: notify_delete "Entry deleted successfully"
+#   Output: Desktop notification or echo to stderr
 notify_delete()     { _notify delete     "$1"; }
+
+# notify_update()
+#   Shows notification when entry is updated.
+#   Returns: 0 on success
+#   Example: notify_update "Entry updated successfully"
+#   Output: Desktop notification or echo to stderr
 notify_update()     { _notify update     "$1"; }
+
+# notify_generate()
+#   Shows notification when new entry is generated.
+#   Returns: 0 on success
+#   Example: notify_generate "New entry created"
+#   Output: Desktop notification or echo to stderr
 notify_generate()   { _notify generate   "$1"; }
+
+# notify_init()
+#   Shows notification when password store is initialized.
+#   Returns: 0 on success
+#   Example: notify_init "Password store initialized"
+#   Output: Desktop notification or echo to stderr
 notify_init()       { _notify init       "$1"; }
+
+# notify_gpg_create()
+#   Shows notification when GPG key is created.
+#   Returns: 0 on success
+#   Example: notify_gpg_create "GPG key created"
+#   Output: Desktop notification or echo to stderr
 notify_gpg_create() { _notify gpg_create "$1"; }
+
+# notify_gpg_import()
+#   Shows notification when GPG key is imported.
+#   Returns: 0 on success
+#   Example: notify_gpg_import "GPG key imported"
+#   Output: Desktop notification or echo to stderr
 notify_gpg_import() { _notify gpg_import "$1"; }
+
+# notify_error()
+#   Shows error notification.
+#   Returns: 0 on success
+#   Example: notify_error "Something went wrong"
+#   Output: Desktop notification or echo to stderr
 notify_error()      { _notify error      "$1"; } 

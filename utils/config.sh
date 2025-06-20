@@ -2,15 +2,46 @@
 # Provides: config_create, config_regenerate, config_open
 
 CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config}"
+CONFIG_DIR="${CONFIG_DIR:-$(dirname "$CONFIG_FILE")}"
+
+# Fallback notification function if notify.sh isn't sourced
+if ! declare -F notify_generate >/dev/null; then
+    notify_generate() {
+        echo "Config: $1" >&2
+    }
+fi
+
+if ! declare -F notify_update >/dev/null; then
+    notify_update() {
+        echo "Config: $1" >&2
+    }
+fi
+
+if ! declare -F notify_error >/dev/null; then
+    notify_error() {
+        echo "Config Error: $1" >&2
+    }
+fi
 
 # config_create()
-#   Safely creates the default configuration file if it doesn't exist.
+#   Creates default config file if it doesn't exist.
+#   Returns: 0 on success, 1 on failure
+#   Example: config_create
+#   Output: Creates ~/.config/rofi-passx/config with default settings
 config_create() {
+  CONFIG_DIR="${CONFIG_DIR:-$(dirname "$CONFIG_FILE")}"
+  # Remove broken symlink if present
+  if [ -L "$CONFIG_FILE" ] && [ ! -e "$CONFIG_FILE" ]; then
+    rm -f "$CONFIG_FILE"
+  fi
   mkdir -p "$CONFIG_DIR"
+  if [[ $? -ne 0 || ! -d "$CONFIG_DIR" ]]; then
+    notify_error "Could not create config directory: $CONFIG_DIR"
+    return 1
+  fi
   if [[ -f "$CONFIG_FILE" ]]; then
     return 0
   fi
-
   cat > "$CONFIG_FILE" <<'EOF'
 # rofi-passx Configuration File
 #
@@ -45,12 +76,21 @@ config_create() {
 # CLIPBOARD_INSTALL_DEFAULT="xclip"
 
 EOF
-  notify_generate "Default configuration file created at $CONFIG_FILE"
+  local status=$?
+  if [[ $status -eq 0 ]]; then
+    notify_generate "Default configuration file created at $CONFIG_FILE"
+    return 0
+  else
+    notify_error "Could not write config file: $CONFIG_FILE"
+    return 1
+  fi
 }
 
 # config_regenerate()
-#   Forcefully overwrites the config file with a fresh default.
-#   Asks for user confirmation before proceeding.
+#   Overwrites config file with fresh defaults after user confirmation.
+#   Returns: 0 on success, 1 on failure
+#   Example: echo "y" | config_regenerate
+#   Output: Resets config to defaults if user confirms
 config_regenerate() {
   read -p "This will overwrite your existing config. Are you sure? [y/N] " -n 1 -r
   echo
@@ -64,9 +104,10 @@ config_regenerate() {
 }
 
 # config_open()
-#   Opens the configuration file in the user's preferred text editor.
-#   Ensures the file exists before opening.
-#   Uses a fallback mechanism to find a suitable editor.
+#   Opens config file in user's preferred editor.
+#   Returns: 0 on success, 1 if no editor found
+#   Example: config_open
+#   Output: Opens ~/.config/rofi-passx/config in editor
 config_open() {
   # Ensure the config file and its directory exist before opening.
   config_create >/dev/null 2>&1

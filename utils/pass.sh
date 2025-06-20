@@ -1,40 +1,115 @@
-# pass.sh — `pass` utility wrappers
-# Provides: pass_init, pass_list, pass_get, pass_create, pass_update, pass_delete, pass_import_csv, pass_switch_key
-
-PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+#!/usr/bin/env bash
+# pass.sh — password store operations
 
 # pass_check()
-#   Verifies pass and GPG are installed
-#   exit 0 if both available, 1 otherwise
+#   Checks if pass command is available.
+#   Returns: 0 if pass found, 1 otherwise
+#   Example: pass_check
+#   Output: Returns success if pass command available
 pass_check() {
-  command -v pass &>/dev/null && command -v gpg &>/dev/null
+  command -v pass &>/dev/null
 }
 
 # pass_init()
-#   Initializes the password store for a given GPG key ID.
-#   $1: GPG Key ID
+#   Initializes password store with GPG key.
+#   Args: $1 = GPG key ID (optional)
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_init ABC123DEF
+#   Output: Initializes password store and shows notification
 pass_init() {
-  local gpg_id="$1"
-  pass init "$gpg_id"
+  local gpg_key="${1:-}"
+  if [[ -z "$gpg_key" ]]; then
+    gpg_key=$(gpg_get_first_key)
+  fi
+  
+  if [[ -n "$gpg_key" ]]; then
+    pass init "$gpg_key"
+    notify_init "Password store initialized with key $gpg_key"
+  else
+    notify_error "No GPG key available for password store initialization"
+    return 1
+  fi
 }
 
 # pass_list()
-#   Lists entries (one per line) from config-specified PASSWORD_STORE_DIR
+#   Lists all password entries.
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_list
+#   Output: Lists all password entries to stdout
 pass_list() {
-  export PASSWORD_STORE_DIR="$PASSWORD_STORE_DIR"
-  pass ls | sed '1d'
+  pass list
 }
 
-# pass_get DOMAIN USER
-#   Prints password for an entry
-pass_get() {
-  local domain="$1" user="$2"
-  local entry="web/${domain}/${user}"
-  pass show "$entry" | head -n 1
+# pass_show()
+#   Shows password entry contents.
+#   Args: $1 = entry name
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_show "github.com"
+#   Output: Prints password entry contents
+pass_show() {
+  local entry="$1"
+  pass show "$entry"
 }
 
-# pass_create DOMAIN USER PASSWORD
-#   Creates a new entry. Fails if it already exists.
+# pass_insert()
+#   Inserts new password entry.
+#   Args: $1 = entry name, $2 = password (optional)
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_insert "new-site.com" "mypassword"
+#   Output: Creates new password entry
+pass_insert() {
+  local entry="$1"
+  local password="${2:-}"
+  
+  if [[ -n "$password" ]]; then
+    echo "$password" | pass insert "$entry"
+  else
+    pass insert "$entry"
+  fi
+}
+
+# pass_generate()
+#   Generates new password entry.
+#   Args: $1 = entry name, $2 = length (optional, default: 20)
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_generate "new-site.com" 32
+#   Output: Generates password and creates entry
+pass_generate() {
+  local entry="$1"
+  local length="${2:-20}"
+  pass generate "$entry" "$length"
+  notify_generate "Generated password for $entry"
+}
+
+# pass_rm()
+#   Removes password entry.
+#   Args: $1 = entry name
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_rm "old-site.com"
+#   Output: Removes password entry
+pass_rm() {
+  local entry="$1"
+  pass rm "$entry"
+  notify_delete "Removed password entry: $entry"
+}
+
+# pass_edit()
+#   Edits password entry.
+#   Args: $1 = entry name
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_edit "github.com"
+#   Output: Opens entry in editor
+pass_edit() {
+  local entry="$1"
+  pass edit "$entry"
+}
+
+# pass_create()
+#   Creates a new password entry with domain/user structure.
+#   Args: $1 = domain, $2 = username, $3 = password
+#   Returns: 0 on success, 1 if entry exists
+#   Example: pass_create "github.com" "myuser" "mypassword"
+#   Output: Creates web/github.com/myuser entry
 pass_create() {
   local domain="$1" user="$2" password="$3"
   local entry="web/${domain}/${user}"
@@ -50,8 +125,12 @@ EOF
   notify_generate "Entry for '$user' at '$domain' created."
 }
 
-# pass_update DOMAIN USER PASSWORD
-#   Forcefully updates an existing entry.
+# pass_update()
+#   Updates existing password entry.
+#   Args: $1 = domain, $2 = username, $3 = password
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_update "github.com" "myuser" "newpassword"
+#   Output: Updates web/github.com/myuser entry
 pass_update() {
   local domain="$1" user="$2" password="$3"
   local entry="web/${domain}/${user}"
@@ -62,8 +141,12 @@ EOF
   notify_update "Entry for '$user' at '$domain' updated."
 }
 
-# pass_remove DOMAIN USER
-#   Deletes an entry
+# pass_remove()
+#   Removes password entry.
+#   Args: $1 = domain, $2 = username
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_remove "github.com" "myuser"
+#   Output: Removes web/github.com/myuser entry
 pass_remove() {
   local domain="$1" user="$2"
   local entry="web/${domain}/${user}"
@@ -71,8 +154,12 @@ pass_remove() {
   notify_delete "Entry for '$user' at '$domain' deleted."
 }
 
-# pass_import_csv CSV_FILE
-#   Imports credentials from a CSV file with columns domain, username, password (any order)
+# pass_import_csv()
+#   Imports credentials from CSV file.
+#   Args: $1 = CSV file path
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_import_csv "passwords.csv"
+#   Output: Imports credentials from CSV with domain,username,password columns
 pass_import_csv() {
   local csv_file="$1"
   local line domain_col user_col pass_col
@@ -132,8 +219,11 @@ pass_import_csv() {
 }
 
 # pass_switch_key()
-#   Switches the GPG key for an existing password store.
-#   $1: The new GPG Key ID to use.
+#   Switches GPG key for password store.
+#   Args: $1 = new GPG key ID
+#   Returns: 0 on success, 1 on failure
+#   Example: pass_switch_key ABC123DEF
+#   Output: Updates .gpg-id file with new key
 pass_switch_key() {
   local new_gpg_id="$1"
 

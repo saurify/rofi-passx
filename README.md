@@ -2,6 +2,11 @@
 
 A secure, Rofi-integrated CLI tool to backup browser passwords into `pass`, fetch credentials via Rofi, and onboard new users with GPG/pass setup.
 
+## Documentation
+
+- **[API Documentation](API.md)** - Detailed developer documentation for extending and modifying rofi-passx
+- This README - User guide and basic usage
+
 ## Features
 - Import passwords from Firefox/Chrome CSV exports into `pass`
 - Rofi UI to search and copy credentials (password, username, or both)

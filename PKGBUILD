@@ -11,19 +11,33 @@ optdepends=('wl-clipboard: Wayland clipboard support')
 install=rofi-passx.install
 source=(
     "rofi-passx"
-    "onboard.sh"
-    "import.sh"
-    "launch.sh"
-    "vault.sh"
+    "rofi-passx-setup"
+    "utils/clipboard.sh"
+    "utils/config.sh"
+    "utils/gpg.sh"
+    "utils/notify.sh"
+    "utils/pass.sh"
+    "utils/startup.sh"
+    "menu/confirm.sh"
     "rofi-passx.desktop"
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 package() {
+    # Install main executable
     install -Dm755 "$srcdir/rofi-passx" "$pkgdir/usr/bin/rofi-passx"
-    install -Dm755 "$srcdir/onboard.sh" "$pkgdir/usr/bin/rofi-passx-onboard"
-    install -Dm755 "$srcdir/import.sh" "$pkgdir/usr/bin/rofi-passx-import"
-    install -Dm755 "$srcdir/launch.sh" "$pkgdir/usr/bin/rofi-passx-launch"
-    install -Dm755 "$srcdir/vault.sh" "$pkgdir/usr/lib/rofi-passx-vault.sh"
+    
+    # Install setup script
+    install -Dm755 "$srcdir/rofi-passx-setup" "$pkgdir/usr/bin/rofi-passx-setup"
+    
+    # Install utils directory
+    install -dm755 "$pkgdir/usr/lib/rofi-passx/utils"
+    install -Dm644 "$srcdir/utils/"*.sh "$pkgdir/usr/lib/rofi-passx/utils/"
+    
+    # Install menu directory
+    install -dm755 "$pkgdir/usr/lib/rofi-passx/menu"
+    install -Dm644 "$srcdir/menu/"*.sh "$pkgdir/usr/lib/rofi-passx/menu/"
+    
+    # Install desktop file
     install -Dm644 "$srcdir/rofi-passx.desktop" "$pkgdir/usr/share/applications/rofi-passx.desktop"
 } 

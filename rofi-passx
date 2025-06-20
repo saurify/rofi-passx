@@ -2,6 +2,38 @@
 set -euo pipefail
 
 # ============================================================================
+#  SECTION 0: UTILITY SOURCING
+#  – source utility functions
+# ============================================================================
+
+# Determine script directory for sourcing utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source utilities (try both development and installed paths)
+if [[ -f "$SCRIPT_DIR/utils/notify.sh" ]]; then
+    # Development mode
+    source "$SCRIPT_DIR/utils/notify.sh"
+    source "$SCRIPT_DIR/utils/config.sh"
+    source "$SCRIPT_DIR/utils/pass.sh"
+    source "$SCRIPT_DIR/utils/clipboard.sh"
+    source "$SCRIPT_DIR/utils/gpg.sh"
+    source "$SCRIPT_DIR/utils/startup.sh"
+    source "$SCRIPT_DIR/menu/confirm.sh"
+elif [[ -f "/usr/lib/rofi-passx/utils/notify.sh" ]]; then
+    # Installed mode
+    source "/usr/lib/rofi-passx/utils/notify.sh"
+    source "/usr/lib/rofi-passx/utils/config.sh"
+    source "/usr/lib/rofi-passx/utils/pass.sh"
+    source "/usr/lib/rofi-passx/utils/clipboard.sh"
+    source "/usr/lib/rofi-passx/utils/gpg.sh"
+    source "/usr/lib/rofi-passx/utils/startup.sh"
+    source "/usr/lib/rofi-passx/menu/confirm.sh"
+else
+    echo "Error: Could not find utility files" >&2
+    exit 1
+fi
+
+# ============================================================================
 #  SECTION 1: CONFIGURATION
 #  – load defaults
 #  – source $CONFIG_FILE
