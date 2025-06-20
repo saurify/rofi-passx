@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# stub for notify.sh tests
+echo "Mock $1 received: $@"
