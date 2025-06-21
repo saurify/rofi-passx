@@ -83,6 +83,20 @@ setup() {
         esac
     }
     
+    # Mock pass_show function (since code now uses pass_show instead of pass show)
+    pass_show() {
+        local entry="$1"
+        if [[ "$entry" == "web/github.com/user1" ]]; then
+            echo "testpass1"
+            return 0
+        elif [[ "$entry" == "web/github.com/user2" ]]; then
+            echo "testpass2"
+            return 0
+        else
+            return 1
+        fi
+    }
+    
     # Mock clipboard function
     clipboard_copy() {
         echo "CLIPBOARD_COPY: $1"
@@ -138,7 +152,7 @@ setup() {
     }
     
     # Export functions for testing
-    export -f rofi pass clipboard_copy confirm input_password_create input_password_update edit_passwords_menu delete_individual_entry notify_copy notify_update notify_delete notify_generate notify_error
+    export -f rofi pass pass_show clipboard_copy confirm input_password_create input_password_update edit_passwords_menu delete_individual_entry notify_copy notify_update notify_delete notify_generate notify_error
 }
 
 teardown() {

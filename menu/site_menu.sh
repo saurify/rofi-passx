@@ -154,7 +154,7 @@ site_user_actions() {
             # Use existing clipboard utility
             local entry="web/${site}/${username}"
             local raw
-            raw=$(pass show "$entry" 2>/dev/null)
+            raw=$(pass_show "$entry" 2>/dev/null)
             if [[ $? -eq 0 ]]; then
                 local pw
                 pw=$(printf "%b" "$raw" | head -n1)
