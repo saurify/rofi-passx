@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # clipboard.sh — cross-platform clipboard operations
 
+# Source notification utilities
+UTILS_DIR="${ROFI_PASSX_UTILS_DIR:-$(dirname "$0")}"
+if ! declare -F notify_update >/dev/null; then
+    if [[ -f "$UTILS_DIR/notify.sh" ]]; then
+        source "$UTILS_DIR/notify.sh"
+    fi
+fi
+
 # clipboard_copy()
 #   Copies text to clipboard using available tools.
 #   Args: $1 = text to copy

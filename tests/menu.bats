@@ -4,12 +4,22 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 
 setup() {
+    export ROFI_PASSX_TEST_MODE=1
+    export ROFI_PASSX_UTILS_DIR="$(dirname "$BATS_TEST_FILENAME")/../utils"
+    export ROFI_PASSX_CONFIRM_PATH="$(dirname "$BATS_TEST_FILENAME")/../menu/confirm.sh"
     # Isolate the test environment
     export MOCK_DIR="$BATS_TMPDIR/mocks"
     mkdir -p "$MOCK_DIR"
     export PATH="$MOCK_DIR:$PATH"
     
-    # Source the menu script under test
+    # Mock grep to avoid system calls
+    cat > "$MOCK_DIR/grep" <<'EOF'
+#!/bin/bash
+exit 1
+EOF
+    chmod +x "$MOCK_DIR/grep"
+
+    # Source the menu script under test using correct relative path
     source "$(dirname "$BATS_TEST_FILENAME")/../menu/confirm.sh"
 
     # Mock rofi to simulate user responses

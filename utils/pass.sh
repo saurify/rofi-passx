@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 # pass.sh — password store operations
 
+# Source gpg utilities for gpg_get_first_key
+UTILS_DIR="${ROFI_PASSX_UTILS_DIR:-$(dirname "$0")}"
+if ! declare -F gpg_get_first_key >/dev/null; then
+    if [[ -f "$UTILS_DIR/gpg.sh" ]]; then
+        source "$UTILS_DIR/gpg.sh"
+    fi
+fi
+
+# Source notification utilities
+if ! declare -F notify_init >/dev/null; then
+    if [[ -f "$UTILS_DIR/notify.sh" ]]; then
+        source "$UTILS_DIR/notify.sh"
+    fi
+fi
+
 # pass_check()
 #   Checks if pass command is available.
 #   Returns: 0 if pass found, 1 otherwise

@@ -53,6 +53,13 @@ ENABLE_ALT_E_DEFAULT=1
 ENABLE_GPG_KEY_SETTINGS_DEFAULT=1
 HIDE_PASSWORD_DEFAULT=1    # 1 = mask password prompt
 
+# Icon defaults
+ICON_WEB_DEFAULT="🌐"
+ICON_IMPORT_DEFAULT="📥"
+ICON_FILE_DEFAULT="📄"
+ICON_USER_DEFAULT="👤"
+ICON_BACK_DEFAULT="↩"
+
 CONFIG_FILE="$HOME/.config/rofi-passx/config.sh"
 
 # shellcheck disable=SC1090
@@ -73,6 +80,13 @@ ENABLE_ALT_E="${ENABLE_ALT_E:-$ENABLE_ALT_E_DEFAULT}"
 ENABLE_GPG_KEY_SETTINGS="${ENABLE_GPG_KEY_SETTINGS:-$ENABLE_GPG_KEY_SETTINGS_DEFAULT}"
 HIDE_PASSWORD="${HIDE_PASSWORD:-$HIDE_PASSWORD_DEFAULT}"
 
+# Icon assignments
+ICON_WEB="${ICON_WEB:-$ICON_WEB_DEFAULT}"
+ICON_IMPORT="${ICON_IMPORT:-$ICON_IMPORT_DEFAULT}"
+ICON_FILE="${ICON_FILE:-$ICON_FILE_DEFAULT}"
+ICON_USER="${ICON_USER:-$ICON_USER_DEFAULT}"
+ICON_BACK="${ICON_BACK:-$ICON_BACK_DEFAULT}"
+
 # helper for password prompt flag
 if [[ "$HIDE_PASSWORD" -eq 1 ]]; then
     PASS_PROMPT_FLAG=(-password)
@@ -83,9 +97,13 @@ fi
 
 # ============================================================================
 #  SECTION 2: UI  (rofi/dmenu + notifications)
-#  – send_notify()
-#  – rofi_menu()
+#  – Uses utility functions from utils/notify.sh
 # ============================================================================
+# Note: All notifications now use utility functions from utils/notify.sh
+# Functions available: notify_copy, notify_delete, notify_update, notify_generate,
+# notify_init, notify_gpg_create, notify_gpg_import, notify_error
+
+# Legacy wrapper for backward compatibility
 send_notify() {
     local msg="$1"; msg="${msg//$'\\n'/$'\n'}"
     if   command -v notify-send >/dev/null; then notify-send "rofi-passx" "$msg"
@@ -108,29 +126,25 @@ rofi_menu() {
 
 # ============================================================================
 #  SECTION 3: CLIPBOARD HELPERS
-#  – copy_to_clipboard()
-#  – copy_username_to_clipboard()
+#  – Uses utility functions from utils/clipboard.sh
 # ============================================================================
-detect_clip() {
-    if command -v xclip >/dev/null; then echo xclip
-    elif command -v wl-copy >/dev/null; then echo wl-copy
-    else                                    echo ""
-    fi
-}
+# Note: All clipboard operations now use utility functions from utils/clipboard.sh
+# Functions available: clipboard_copy, clipboard_clear, clip_copy, clip_paste
 
+# Legacy wrapper for backward compatibility
 copy_to_clipboard() {
-    local text="$1" label="$2" tool
-    tool=$(detect_clip) || true
-    if [[ -z "$tool" ]]; then
-        send_notify "❌ No clipboard tool (xclip/wl-copy)!"
+    local text="$1" label="$2"
+    if clip_copy "$text"; then
+        send_notify "🔒 $label copied to clipboard."
+        return 0
+    else
+        send_notify "❌ Failed to copy to clipboard!"
         return 1
     fi
-    printf "%s" "$text" | $tool -selection clipboard
-    send_notify "🔒 $label copied to clipboard."
 }
 
 copy_username_to_clipboard() {
-    local site="$1" user="$2" raw username tool
+    local site="$1" user="$2" raw username
     raw=$(pass show "web/$site/$user") || return 1
     username=$(
       printf "%b" "$raw" \
@@ -147,12 +161,13 @@ copy_username_to_clipboard() {
 
 # ============================================================================
 #  SECTION 4: PASS-STORE HELPERS
-#  – sanitize()
-#  – get_sites()
-#  – get_users_for_site()
-#  – is_pass_initialized()
-#  – check_dependencies()
+#  – Uses utility functions from utils/pass.sh
 # ============================================================================
+# Note: All pass operations now use utility functions from utils/pass.sh
+# Functions available: pass_check, pass_init, pass_list, pass_show, pass_insert, 
+# pass_generate, pass_rm, pass_edit, pass_create, pass_update, pass_remove
+
+# Legacy wrapper for backward compatibility
 sanitize() {
     # allow more URL-safe chars if you like
     echo "$1" | sed 's/[^a-zA-Z0-9_.@-]//g'
@@ -182,8 +197,9 @@ check_dependencies() {
     for cmd in rofi pass bash; do
       ! command -v "$cmd" &>/dev/null && miss+=("$cmd")
     done
-    tool=$(detect_clip)
-    [[ -z "$tool" ]] && miss+=("xclip or wl-copy")
+    if ! clip_check &>/dev/null; then
+        miss+=("xclip or wl-copy")
+    fi
     (( ${#miss[@]} )) && {
       echo "[rofi-passx] Missing: ${miss[*]}" >&2
       exit 1
@@ -217,42 +233,93 @@ main_menu() {
     local sites items sel
     sites=$(get_sites)
     items=()
-    while read -r s; do [[ -n "$s" ]] && items+=("$s"); done <<<"$sites"
+    while read -r s; do [[ -n "$s" ]] && items+=("$ICON_WEB $s"); done <<<"$sites"
     items+=("➕ Add Entry Manually")
-    items+=("📥 Import Passwords from File")
+    items+=("$ICON_IMPORT Import Passwords from File")
     [[ "$ENABLE_GPG_KEY_SETTINGS" -eq 1 ]] && items+=("🔑 GPG Key Settings")
     items+=("⚙️ Settings")
     is_pass_initialized || items+=("Onboard")
-    items+=("↩ Back")
+    items+=("$ICON_BACK Back")
 
-    local mesg="…(copy the exact same Pango instructions here)…"
+    local mesg="Select a site to view users, or choose an action from the menu."
     rofi_menu "rofi-passx: Select site or action" "$mesg" "${items[@]}"
 }
 
 import_menu() {
-    local files=("↩ Back") f
-    for f in "$IMPORT_FOLDER"/*.csv; do [[ -f $f ]] && files+=("$f"); done
-    local mesg="…(copy exact CSV-import instructions)…"
-    rofi_menu "rofi-passx: 📥 Import CSV" "$mesg" "${files[@]}"
+    local files=("$ICON_BACK Back") f
+    for f in "$IMPORT_FOLDER"/*.csv; do [[ -f $f ]] && files+=("$ICON_FILE $(basename "$f")"); done
+    local mesg="Select a CSV file to import passwords from Firefox or Chrome."
+    rofi_menu "rofi-passx: $ICON_IMPORT Import CSV" "$mesg" "${files[@]}"
 }
 
 user_menu() {
     local site="$1" users sel mesg
     users=$(get_users_for_site "$site")
-    mesg="…(copy exact user-menu instructions, including Alt-key tips)…"
+    mesg="Select a user or action. Use Alt+C to copy password, Alt+D to delete, Alt+E to edit."
     local args=(-dmenu -markup-rows -mesg "$mesg" -p "Users for $site")
     $ENABLE_ALT_C && args+=(-kb-custom-1 alt+c)
     $ENABLE_ALT_D && args+=(-kb-custom-2 alt+d)
     $ENABLE_ALT_E && args+=(-kb-custom-3 alt+e)
 
-    sel=$(printf "%s\n↩ Back\n$users\n✏️ Edit Entry\n🗑️ Delete this site\n" \
+    sel=$(printf "%s\n$ICON_BACK Back\n$users\n✏️ Edit Entry\n🗑️ Delete this site\n" \
            | rofi "${args[@]}")
     echo "$sel"
 }
 
-manual_entry() { … }   # COPY EXACT from original
-edit_entry()   { … }   # COPY EXACT from original
-open_settings_menu() { … }
+manual_entry() {
+    local domain username password entry
+    domain=$(rofi -dmenu -p "Domain (e.g., github.com):" -mesg "Enter the website domain")
+    [[ -z "$domain" ]] && return 1
+    
+    username=$(rofi -dmenu -p "Username:" -mesg "Enter the username")
+    [[ -z "$username" ]] && return 1
+    
+    password=$(rofi -dmenu "${PASS_PROMPT_FLAG[@]}" -p "Password:" -mesg "Enter the password")
+    [[ -z "$password" ]] && return 1
+    
+    entry="web/${domain}/${username}"
+    if pass_create "$domain" "$username" "$password"; then
+        send_notify "✅ Entry created for $username@$domain"
+        [[ "$CLOSE_ON_NEW" -eq 1 ]] && exit 0
+    else
+        send_notify "❌ Failed to create entry"
+    fi
+}
+
+edit_entry() {
+    local site="$1" users user_sel
+    users=$(get_users_for_site "$site")
+    user_sel=$(printf "%s\n" "$users" | rofi -dmenu -p "Select user to edit:")
+    [[ -z "$user_sel" ]] && return 1
+    
+    local entry="web/$site/$user_sel"
+    if pass_edit "$entry"; then
+        send_notify "✅ Entry updated for $user_sel@$site"
+        [[ "$CLOSE_ON_EDIT" -eq 1 ]] && exit 0
+    else
+        send_notify "❌ Failed to update entry"
+    fi
+}
+
+open_settings_menu() {
+    local options=("📝 Edit Config File" "🔄 Reset Config" "↩ Back")
+    local choice
+    choice=$(printf "%s\n" "${options[@]}" | rofi -dmenu -p "Settings:" -mesg "Choose a settings option")
+    
+    case "$choice" in
+        "📝 Edit Config File")
+            config_open
+            ;;
+        "🔄 Reset Config")
+            if confirm "This will reset your config to defaults. Continue?"; then
+                config_regenerate
+            fi
+            ;;
+        "↩ Back")
+            return 0
+            ;;
+    esac
+}
 
 # ============================================================================
 #  SECTION 7: MAIN LOOP
@@ -261,30 +328,44 @@ while true; do
   sel=$(main_menu)
   case "$sel" in
     "$ICON_WEB "*)
-      site=${sel#"$ICON_WEB"}; site=${site// /}
+      site=${sel#"$ICON_WEB "}; site=${site// /}
       while true; do
         user_sel=$(user_menu "$site")
         [[ "$user_sel" == "$ICON_BACK Back" || -z $user_sel ]] && break
         case "$user_sel" in
-          ✏️\ Edit\ Entry)   edit_entry "$site" … ;;
-          🗑️\ Delete\ this\ site) … ;;
-          *)                  passout="${user_sel#👤 }"
-                              raw=$(pass show "web/$site/$passout")
-                              pw=$(printf "%b" "$raw"| head -n1)
-                              copy_to_clipboard "$pw" "Password for $passout@$site";;
+          ✏️\ Edit\ Entry)   edit_entry "$site" ;;
+          🗑️\ Delete\ this\ site) 
+            if confirm "Delete all entries for $site?"; then
+              for user in $(get_users_for_site "$site"); do
+                pass_remove "$site" "$user"
+              done
+              send_notify "✅ All entries for $site deleted"
+              [[ "$CLOSE_ON_DELETE" -eq 1 ]] && exit 0
+            fi
+            ;;
+          *)                  
+            passout="${user_sel#👤 }"
+            raw=$(pass show "web/$site/$passout")
+            pw=$(printf "%b" "$raw"| head -n1)
+            if copy_to_clipboard "$pw" "Password for $passout@$site"; then
+              [[ "$CLOSE_ON_COPY" -eq 1 ]] && exit 0
+            fi
+            ;;
         esac
       done
       ;;
     "➕ Add Entry Manually") manual_entry ;;
-    "$ICON_IMPORT "*)
-      f=$(import_menu); f=${f#$ICON_FILE}; [[ $f == Back ]] && continue
-      /usr/bin/rofi-passx-import "$IMPORT_FOLDER/$f" \
-        && send_notify "✅ Import successful!" \
-        || send_notify "❌ Import failed!"
+    "$ICON_IMPORT Import Passwords from File")
+      f=$(import_menu); f=${f#$ICON_FILE }; [[ $f == Back ]] && continue
+      if pass_import_csv "$IMPORT_FOLDER/$f"; then
+        send_notify "✅ Import successful!"
+      else
+        send_notify "❌ Import failed!"
+      fi
       ;;
     "🔑 GPG Key Settings")    gpg_key_settings_menu ;;
     "⚙️ Settings")            open_settings_menu; source "$CONFIG_FILE" ;;
-    "Onboard")                send_notify "Onboard skipped" ;;
+    "Onboard")                /usr/bin/rofi-passx-setup ;;
     "$ICON_BACK Back")        rofi -show drun & disown; exit 0 ;;
     *)                        send_notify "❓ Unknown: $sel" ;;
   esac

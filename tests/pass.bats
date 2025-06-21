@@ -20,6 +20,19 @@ echo "notify-send called with: $@"
 EOF
     chmod +x "$MOCK_DIR/notify-send"
 
+    # Mock functions before sourcing
+    gpg_get_first_key() {
+        echo "ABC123DEF"
+    }
+    
+    notify_init() {
+        echo "NOTIFY: $1"
+    }
+    
+    notify_error() {
+        echo "ERROR: $1"
+    }
+
     # Source all utilities
     source "$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
     source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
@@ -33,6 +46,10 @@ EOF
     fi
     export GPG_KEY_1=$(gpg --list-keys --with-colons 'test1@example.com' | awk -F: '/^pub:/ { print $5 }')
     export GPG_KEY_2=$(gpg --list-keys --with-colons 'test2@example.com' | awk -F: '/^pub:/ { print $5 }')
+}
+
+teardown() {
+    rm -rf "$PASSWORD_STORE_DIR"
 }
 
 @test "[pass] pass_switch_key fails if password store does not exist" {

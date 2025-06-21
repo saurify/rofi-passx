@@ -1,25 +1,25 @@
-# config.sh — handles user config (~/.config/rofi-passx/config)
+# config.sh — handles user config (~/.config/rofi-passx/config.sh)
 # Provides: config_create, config_regenerate, config_open
 
-CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config}"
+CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config.sh}"
 CONFIG_DIR="${CONFIG_DIR:-$(dirname "$CONFIG_FILE")}"
 
 # Fallback notification function if notify.sh isn't sourced
 if ! declare -F notify_generate >/dev/null; then
     notify_generate() {
-        echo "Config: $1" >&2
+        echo "NOTIFY: $1"
     }
 fi
 
 if ! declare -F notify_update >/dev/null; then
     notify_update() {
-        echo "Config: $1" >&2
+        echo "NOTIFY: $1"
     }
 fi
 
 if ! declare -F notify_error >/dev/null; then
     notify_error() {
-        echo "Config Error: $1" >&2
+        echo "ERROR: $1"
     }
 fi
 
