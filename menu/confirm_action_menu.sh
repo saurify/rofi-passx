@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# confirm.sh — Rofi-based confirmation dialog utility
+# confirm_action_menu.sh — Rofi-based confirmation dialog utility
 
 # confirm()
 #   Shows confirmation dialog using Rofi.

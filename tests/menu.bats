@@ -3,37 +3,35 @@
 load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 
+# Define menu script path as a variable for maintainability
+MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu/confirm_action_menu.sh"
+
 setup() {
     export ROFI_PASSX_TEST_MODE=1
     export ROFI_PASSX_UTILS_DIR="$(dirname "$BATS_TEST_FILENAME")/../utils"
-    export ROFI_PASSX_CONFIRM_PATH="$(dirname "$BATS_TEST_FILENAME")/../menu/confirm.sh"
     # Isolate the test environment
     export MOCK_DIR="$BATS_TMPDIR/mocks"
     mkdir -p "$MOCK_DIR"
     export PATH="$MOCK_DIR:$PATH"
     
-    # Mock grep to avoid system calls
+    # Mock grep for testing
     cat > "$MOCK_DIR/grep" <<'EOF'
 #!/bin/bash
-exit 1
+echo "mocked grep"
 EOF
     chmod +x "$MOCK_DIR/grep"
 
-    # Source the menu script under test using correct relative path
-    source "$(dirname "$BATS_TEST_FILENAME")/../menu/confirm.sh"
+    # Source the confirm action menu functions
+    source "$MENU_SCRIPT"
 
     # Mock rofi to simulate user responses
     cat > "$MOCK_DIR/rofi" <<'EOF'
 #!/bin/bash
-# Simulate rofi behavior based on environment variables
-# ROFI_RESPONSE can be set to "Yes", "No", or empty for cancellation
-
-if [[ -n "${ROFI_RESPONSE:-}" ]]; then
-    echo "$ROFI_RESPONSE"
-else
-    # Simulate cancellation (no output)
-    exit 1
-fi
+case "$ROFI_RESPONSE" in
+    "Yes") echo "Yes" ;;
+    "No")  echo "No"  ;;
+    *)     echo ""    ;;
+esac
 EOF
     chmod +x "$MOCK_DIR/rofi"
 }
@@ -74,11 +72,11 @@ teardown() {
     export ROFI_RESPONSE="Yes"
     
     # Capture the rofi call
-    run bash -c '
-        export ROFI_RESPONSE="Yes"
-        source "'"$(dirname "$BATS_TEST_FILENAME")/../menu/confirm.sh"'"
-        confirm "Test message"
-    '
+    run bash -c "
+        export ROFI_RESPONSE=\"Yes\"
+        source \"$MENU_SCRIPT\"
+        confirm \"Test message\"
+    "
     
     assert_success
 }

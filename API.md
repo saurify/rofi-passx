@@ -358,7 +358,7 @@ startup_check_config
 
 ## Menu System
 
-### Confirmation Dialog (`menu/confirm.sh`)
+### Confirmation Dialog (`menu/confirm_action_menu.sh`)
 
 Provides Rofi-based confirmation dialogs.
 
@@ -436,7 +436,7 @@ All errors are reported via `notify_error()` which:
 ### Adding New Menu Functions
 
 1. Create new script in `menu/` directory
-2. Follow `confirm.sh` pattern for Rofi integration
+2. Follow `confirm_action_menu.sh` pattern for Rofi integration
 3. Use consistent return codes (0=success, 1=failure)
 
 ### Customizing Notifications

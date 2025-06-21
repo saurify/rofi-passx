@@ -18,7 +18,12 @@ if [[ -f "$SCRIPT_DIR/utils/notify.sh" ]]; then
     source "$SCRIPT_DIR/utils/clipboard.sh"
     source "$SCRIPT_DIR/utils/gpg.sh"
     source "$SCRIPT_DIR/utils/startup.sh"
-    source "$SCRIPT_DIR/menu/confirm.sh"
+    source "$SCRIPT_DIR/menu/confirm_action_menu.sh"
+    source "$SCRIPT_DIR/menu/add_entry_menu.sh"
+    source "$SCRIPT_DIR/menu/update_entry_menu.sh"
+    source "$SCRIPT_DIR/menu/delete_entry_menu.sh"
+    source "$SCRIPT_DIR/menu/edit_passwords_menu.sh"
+    source "$SCRIPT_DIR/menu/site_menu.sh"
 elif [[ -f "/usr/lib/rofi-passx/utils/notify.sh" ]]; then
     # Installed mode
     source "/usr/lib/rofi-passx/utils/notify.sh"
@@ -27,7 +32,12 @@ elif [[ -f "/usr/lib/rofi-passx/utils/notify.sh" ]]; then
     source "/usr/lib/rofi-passx/utils/clipboard.sh"
     source "/usr/lib/rofi-passx/utils/gpg.sh"
     source "/usr/lib/rofi-passx/utils/startup.sh"
-    source "/usr/lib/rofi-passx/menu/confirm.sh"
+    source "/usr/lib/rofi-passx/menu/confirm_action_menu.sh"
+    source "/usr/lib/rofi-passx/menu/add_entry_menu.sh"
+    source "/usr/lib/rofi-passx/menu/update_entry_menu.sh"
+    source "/usr/lib/rofi-passx/menu/delete_entry_menu.sh"
+    source "/usr/lib/rofi-passx/menu/edit_passwords_menu.sh"
+    source "/usr/lib/rofi-passx/menu/site_menu.sh"
 else
     echo "Error: Could not find utility files" >&2
     exit 1
@@ -94,6 +104,9 @@ else
     PASS_PROMPT_FLAG=()
 fi
 
+if [[ -f "$SCRIPT_DIR/menu/user_menu.sh" ]]; then
+    source "$SCRIPT_DIR/menu/user_menu.sh"
+fi
 
 # ============================================================================
 #  SECTION 2: UI  (rofi/dmenu + notifications)
@@ -252,20 +265,6 @@ import_menu() {
     rofi_menu "rofi-passx: $ICON_IMPORT Import CSV" "$mesg" "${files[@]}"
 }
 
-user_menu() {
-    local site="$1" users sel mesg
-    users=$(get_users_for_site "$site")
-    mesg="Select a user or action. Use Alt+C to copy password, Alt+D to delete, Alt+E to edit."
-    local args=(-dmenu -markup-rows -mesg "$mesg" -p "Users for $site")
-    $ENABLE_ALT_C && args+=(-kb-custom-1 alt+c)
-    $ENABLE_ALT_D && args+=(-kb-custom-2 alt+d)
-    $ENABLE_ALT_E && args+=(-kb-custom-3 alt+e)
-
-    sel=$(printf "%s\n$ICON_BACK Back\n$users\n✏️ Edit Entry\n🗑️ Delete this site\n" \
-           | rofi "${args[@]}")
-    echo "$sel"
-}
-
 manual_entry() {
     local domain username password entry
     domain=$(rofi -dmenu -p "Domain (e.g., github.com):" -mesg "Enter the website domain")
@@ -330,11 +329,19 @@ while true; do
     "$ICON_WEB "*)
       site=${sel#"$ICON_WEB "}; site=${site// /}
       while true; do
-        user_sel=$(user_menu "$site")
+        user_sel=$(site_menu "$site")
         [[ "$user_sel" == "$ICON_BACK Back" || -z $user_sel ]] && break
         case "$user_sel" in
-          ✏️\ Edit\ Entry)   edit_entry "$site" ;;
-          🗑️\ Delete\ this\ site) 
+          "➕ Add New User")
+            if input_password_create "$site"; then
+              send_notify "✅ New user added to $site"
+              [[ "$CLOSE_ON_NEW" -eq 1 ]] && exit 0
+            else
+              send_notify "❌ Failed to add user to $site"
+            fi
+            ;;
+          "✏️ Edit Entry")   edit_entry "$site" ;;
+          "🗑️ Delete this site") 
             if confirm "Delete all entries for $site?"; then
               for user in $(get_users_for_site "$site"); do
                 pass_remove "$site" "$user"
@@ -347,7 +354,7 @@ while true; do
             passout="${user_sel#👤 }"
             raw=$(pass show "web/$site/$passout")
             pw=$(printf "%b" "$raw"| head -n1)
-            if copy_to_clipboard "$pw" "Password for $passout@$site"; then
+            if clipboard_copy "$pw" "Password for $passout@$site"; then
               [[ "$CLOSE_ON_COPY" -eq 1 ]] && exit 0
             fi
             ;;

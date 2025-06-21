@@ -18,7 +18,12 @@ source=(
     "utils/notify.sh"
     "utils/pass.sh"
     "utils/startup.sh"
-    "menu/confirm.sh"
+    "menu/confirm_action_menu.sh"
+    "menu/add_entry_menu.sh"
+    "menu/update_entry_menu.sh"
+    "menu/delete_entry_menu.sh"
+    "menu/edit_passwords_menu.sh"
+    "menu/site_menu.sh"
     "rofi-passx.desktop"
 )
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
