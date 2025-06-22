@@ -51,6 +51,14 @@ EOF
         echo "MOCK: input_password_update called with: $1 $2"
         return 0
     }
+    # Mock get_users_for_site function
+    get_users_for_site() {
+        local site="$1"
+        if [[ "$site" == "test.com" ]]; then
+            echo "user1"
+            echo "user2"
+        fi
+    }
     
     # Mock find command to return test users
     cat > "$MOCK_DIR/find" <<'EOF'
@@ -64,6 +72,9 @@ EOF
 
     # Source the edit menu functions last (following coding guidelines priority)
     source "$EDIT_MENU_SCRIPT"
+
+    # Export functions for testing
+    export -f input_password_update get_users_for_site
 }
 
 @test "[edit_menu] edit_user_password calls input_password_update with correct arguments" {

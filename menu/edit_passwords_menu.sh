@@ -4,7 +4,7 @@
 
 # Source utility functions if not already sourced
 UTILS_DIR="${ROFI_PASSX_UTILS_DIR:-$(dirname "$0")/../utils}"
-if ! declare -F pass_list >/dev/null; then
+if ! declare -F get_users_for_site >/dev/null; then
     if [[ -f "$UTILS_DIR/pass.sh" ]]; then
         source "$UTILS_DIR/pass.sh"
     fi
@@ -66,9 +66,7 @@ edit_passwords_menu() {
     fi
     
     # Get users for this site
-    users=$(find ~/.password-store/web/"$domain" -type f -name '*.gpg' 2>/dev/null \
-      | sed 's|.gpg$||;s|.*/'"$domain"'/||' \
-      | sort -u)
+    users=$(get_users_for_site "$domain")
     
     if [[ -z "$users" ]]; then
         notify_error "No entries found for $domain"
