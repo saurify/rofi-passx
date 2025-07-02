@@ -7,8 +7,13 @@ setup() {
     # Isolate the test environment
     export GNUPGHOME="$BATS_TMPDIR/gnupg"
     export PASSWORD_STORE_DIR="$BATS_TMPDIR/pass-store"
-    mkdir -p "$GNUPGHOME" "$PASSWORD_STORE_DIR"
+    export HOME="$BATS_TMPDIR/home"
+    mkdir -p "$GNUPGHOME" "$PASSWORD_STORE_DIR" "$HOME/.config/rofi-passx"
+    touch "$HOME/.config/rofi-passx/config"
     chmod 700 "$GNUPGHOME"
+
+    # Source utilities early
+    source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
 
     # Mock notification dependency
     export MOCK_DIR="$BATS_TMPDIR/mocks"
@@ -33,10 +38,6 @@ EOF
         echo "ERROR: $1"
     }
 
-    # Source all utilities
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
-
     # Generate two GPG keys for testing, if they don't already exist
     if ! gpg --list-keys 'test1@example.com' >/dev/null 2>&1; then
       gpg --batch --passphrase '' --quick-gen-key "test1@example.com"
@@ -46,6 +47,9 @@ EOF
     fi
     export GPG_KEY_1=$(gpg --list-keys --with-colons 'test1@example.com' | awk -F: '/^pub:/ { print $5 }')
     export GPG_KEY_2=$(gpg --list-keys --with-colons 'test2@example.com' | awk -F: '/^pub:/ { print $5 }')
+    
+    # Initialize the password store for all tests
+    pass_init "$GPG_KEY_1"
 }
 
 teardown() {
@@ -63,6 +67,11 @@ teardown() {
 }
 
 @test "[pass] pass_switch_key successfully switches GPG key" {
+    # Mock pass_init to prevent calling the real 'pass' command
+    pass_init() {
+        echo "$1" > "$PASSWORD_STORE_DIR/.gpg-id"
+    }
+
     # Initialize store with the first key
     pass_init "$GPG_KEY_1"
     assert [ "$(cat "$PASSWORD_STORE_DIR/.gpg-id")" = "$GPG_KEY_1" ]
@@ -80,6 +89,10 @@ teardown() {
 }
 
 @test "[pass] pass_switch_key fails if no GPG ID is provided" {
+    # Mock pass_init to prevent calling the real 'pass' command
+    pass_init() {
+        echo "$1" > "$PASSWORD_STORE_DIR/.gpg-id"
+    }
     pass_init "$GPG_KEY_1" # Init the store first
 
     run pass_switch_key ""

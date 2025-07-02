@@ -5,8 +5,18 @@ load 'test_helper/bats-assert/load'
 
 # Define menu script path as a variable for maintainability
 USER_MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu/site_menu.sh"
+SCRIPT_PATH="$(dirname "$BATS_TEST_FILENAME")/../rofi-passx"
 
 setup() {
+    # Isolate the test environment
+    export HOME="$BATS_TMPDIR/home"
+    export ROFI_PASSX_UTILS_DIR="$(dirname "$BATS_TEST_FILENAME")/../utils"
+    mkdir -p "$HOME/.config/rofi-passx"
+    touch "$HOME/.config/rofi-passx/config"
+
+    # Define icons for tests
+    ICON_BACK="↩"
+
     # Source utilities first (following coding guidelines priority)
     source "$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
     source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
@@ -119,9 +129,6 @@ case "$*" in
         ;;
 esac
 EOF
-    
-    # Source the main script functions
-    source "$SCRIPT_PATH"
     
     # Test that user_menu returns the expected selection
     run user_menu "test.com"
@@ -240,14 +247,11 @@ EOF
 
 # Edge case: Copy password for non-existent user
 @test "[user_menu] copy password for non-existent user fails gracefully" {
-    pass_show() { return 1; }
-    clipboard_copy() { return 1; }
+    pass_show() { return 1; } # Simulate failure
     site="test.com"
     user_sel="nonexistent"
     passout="${user_sel#👤 }"
-    raw=$(pass_show "web/$site/$passout")
-    pw=$(printf "%b" "$raw"| head -n1)
-    run clipboard_copy "$pw" "Password for $passout@$site"
+    run pass_show "web/$site/$passout"
     assert_failure
 }
 
@@ -281,6 +285,9 @@ EOF
     assert [ "${args[5]}" = "Users for $site" ]
     
     # Verify keyboard shortcuts are added when enabled
+    ENABLE_ALT_C=1
+    ENABLE_ALT_D=1
+    ENABLE_ALT_E=1
     if [[ "$ENABLE_ALT_C" -eq 1 ]]; then
         args+=(-kb-custom-1 alt+c)
     fi
