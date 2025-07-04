@@ -75,6 +75,11 @@ sudo apt install pass rofi gnupg xclip libnotify-bin
    sudo cp rofi-passx /usr/local/bin/
    ```
 
+**Alternative: Install via PKGBUILD (Arch Linux/Manjaro):**
+```sh
+makepkg -si
+```
+
 ---
 
 ## Getting Started
