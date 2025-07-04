@@ -13,7 +13,7 @@ setup() {
     chmod 700 "$GNUPGHOME"
 
     # Source utilities early
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_pass.sh"
 
     # Mock notification dependency
     export MOCK_DIR="$BATS_TMPDIR/mocks"

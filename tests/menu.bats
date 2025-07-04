@@ -4,7 +4,7 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 
 # Define menu script path as a variable for maintainability
-MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu/confirm_action_menu.sh"
+MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu_confirm_action.sh"
 
 setup() {
     export ROFI_PASSX_TEST_MODE=1
@@ -22,7 +22,7 @@ EOF
     chmod +x "$MOCK_DIR/grep"
 
     # Source the confirm action menu functions
-    source "$MENU_SCRIPT"
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_confirm_action.sh"
 
     # Mock rofi to simulate user responses
     cat > "$MOCK_DIR/rofi" <<'EOF'

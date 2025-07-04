@@ -4,14 +4,14 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 
 # Define menu script path as a variable for maintainability
-DELETE_MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu/delete_entry_menu.sh"
+DELETE_MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu_delete_entry.sh"
 
 setup() {
     # Source utilities first (following coding guidelines priority)
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/pass.sh"
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/config.sh"
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/clipboard.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_notify.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_pass.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_config.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_clipboard.sh"
     
     # Mock rofi to return predefined responses
     export MOCK_DIR="$BATS_TMPDIR/mocks"

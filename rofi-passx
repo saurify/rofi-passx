@@ -10,34 +10,34 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source utilities (try both development and installed paths)
-if [[ -f "$SCRIPT_DIR/utils/notify.sh" ]]; then
+if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
     # Development mode
-    source "$SCRIPT_DIR/utils/notify.sh"
-    source "$SCRIPT_DIR/utils/config.sh"
-    source "$SCRIPT_DIR/utils/pass.sh"
-    source "$SCRIPT_DIR/utils/clipboard.sh"
-    source "$SCRIPT_DIR/utils/gpg.sh"
-    source "$SCRIPT_DIR/utils/startup.sh"
-    source "$SCRIPT_DIR/menu/confirm_action_menu.sh"
-    source "$SCRIPT_DIR/menu/add_entry_menu.sh"
-    source "$SCRIPT_DIR/menu/update_entry_menu.sh"
-    source "$SCRIPT_DIR/menu/delete_entry_menu.sh"
-    source "$SCRIPT_DIR/menu/edit_passwords_menu.sh"
-    source "$SCRIPT_DIR/menu/site_menu.sh"
-elif [[ -f "/usr/lib/rofi-passx/utils/notify.sh" ]]; then
+    source "$SCRIPT_DIR/util_notify.sh"
+    source "$SCRIPT_DIR/util_config.sh"
+    source "$SCRIPT_DIR/util_pass.sh"
+    source "$SCRIPT_DIR/util_clipboard.sh"
+    source "$SCRIPT_DIR/util_gpg.sh"
+    source "$SCRIPT_DIR/util_startup.sh"
+    source "$SCRIPT_DIR/menu_confirm_action.sh"
+    source "$SCRIPT_DIR/menu_add_entry.sh"
+    source "$SCRIPT_DIR/menu_update_entry.sh"
+    source "$SCRIPT_DIR/menu_delete_entry.sh"
+    source "$SCRIPT_DIR/menu_edit_passwords.sh"
+    source "$SCRIPT_DIR/menu_site.sh"
+elif [[ -f "/usr/lib/rofi-passx/util_notify.sh" ]]; then
     # Installed mode
-    source "/usr/lib/rofi-passx/utils/notify.sh"
-    source "/usr/lib/rofi-passx/utils/config.sh"
-    source "/usr/lib/rofi-passx/utils/pass.sh"
-    source "/usr/lib/rofi-passx/utils/clipboard.sh"
-    source "/usr/lib/rofi-passx/utils/gpg.sh"
-    source "/usr/lib/rofi-passx/utils/startup.sh"
-    source "/usr/lib/rofi-passx/menu/confirm_action_menu.sh"
-    source "/usr/lib/rofi-passx/menu/add_entry_menu.sh"
-    source "/usr/lib/rofi-passx/menu/update_entry_menu.sh"
-    source "/usr/lib/rofi-passx/menu/delete_entry_menu.sh"
-    source "/usr/lib/rofi-passx/menu/edit_passwords_menu.sh"
-    source "/usr/lib/rofi-passx/menu/site_menu.sh"
+    source "/usr/lib/rofi-passx/util_notify.sh"
+    source "/usr/lib/rofi-passx/util_config.sh"
+    source "/usr/lib/rofi-passx/util_pass.sh"
+    source "/usr/lib/rofi-passx/util_clipboard.sh"
+    source "/usr/lib/rofi-passx/util_gpg.sh"
+    source "/usr/lib/rofi-passx/util_startup.sh"
+    source "/usr/lib/rofi-passx/menu_confirm_action.sh"
+    source "/usr/lib/rofi-passx/menu_add_entry.sh"
+    source "/usr/lib/rofi-passx/menu_update_entry.sh"
+    source "/usr/lib/rofi-passx/menu_delete_entry.sh"
+    source "/usr/lib/rofi-passx/menu_edit_passwords.sh"
+    source "/usr/lib/rofi-passx/menu_site.sh"
 else
     echo "Error: Could not find utility files" >&2
     exit 1
@@ -104,8 +104,14 @@ else
     PASS_PROMPT_FLAG=()
 fi
 
-if [[ -f "$SCRIPT_DIR/menu/user_menu.sh" ]]; then
-    source "$SCRIPT_DIR/menu/user_menu.sh"
+# After all sourcing and config, run startup checks and render site menu for the first site by default
+startup_check
+# TODO: Replace with main_menu when implemented
+first_site=$(get_sites | head -n1)
+if [[ -n "$first_site" ]]; then
+    site_menu "$first_site"
+else
+    send_notify "No sites found. Please add a site first."
 fi
 
 # ============================================================================

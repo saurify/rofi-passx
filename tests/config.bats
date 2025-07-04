@@ -30,7 +30,7 @@ EOF
     chmod +x "$mock_dir/notify-send"
     
     # Source the script under test
-    source "$ROFI_PASSX_UTILS_DIR/config.sh"
+    source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'
 }
 
 teardown() {
@@ -157,7 +157,7 @@ notify_error() {
 }
 
 # Source the actual config script
-source "$(dirname "$BATS_TEST_FILENAME")/../utils/config.sh"
+source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'
 EOF
     
     # Run config_create in a new shell with fallback functions
@@ -186,7 +186,7 @@ EOF
     echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
     
     # Mock user input to confirm (y) - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; echo 'y' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
     assert_success
     
     # Check that file was regenerated
@@ -202,7 +202,7 @@ EOF
     echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
     
     # Mock user input to cancel (n) - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; echo 'n' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'n' | config_regenerate"
     assert_success
     
     # Check that file was not changed
@@ -218,7 +218,7 @@ EOF
     echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
     
     # Mock empty user input - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; echo '' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo '' | config_regenerate"
     assert_success
     
     # Check that file was not changed
@@ -233,7 +233,7 @@ EOF
     rm -f "$HOME/.config/rofi-passx/config.sh"
     
     # Mock user input to confirm (y) - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; echo 'y' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
     assert_success
     
     # Check that file was created
@@ -247,7 +247,7 @@ EOF
     echo "OLD_CONFIG=true" > "$custom_config"
     
     # Mock user input to confirm (y) - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; export CONFIG_FILE='$custom_config'; echo 'y' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; export CONFIG_FILE='$custom_config'; echo 'y' | config_regenerate"
     assert_success
     
     # Check that custom file was regenerated
@@ -471,7 +471,7 @@ EOF
     echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
     
     # Mock user input to confirm regeneration - source functions in subshell
-    run bash -c "source '$ROFI_PASSX_UTILS_DIR/config.sh'; echo 'y' | config_regenerate"
+    run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
     assert_success
     
     # Verify config_create was called and file was regenerated

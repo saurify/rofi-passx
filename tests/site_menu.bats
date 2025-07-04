@@ -162,7 +162,7 @@ teardown() {
 # Test site_menu function with valid site
 @test "site_menu shows users for valid site" {
     # Source the site menu script
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site to return test users
     get_users_for_site() {
@@ -183,7 +183,7 @@ teardown() {
 
 # Test site_menu with empty site
 @test "site_menu handles empty site parameter" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     run site_menu ""
     
@@ -194,7 +194,7 @@ teardown() {
 
 # Test site_menu with no users
 @test "site_menu handles site with no users" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site to return empty
     get_users_for_site() {
@@ -211,7 +211,7 @@ teardown() {
 
 # Test site_user_actions function
 @test "site_user_actions shows user-specific actions" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     run site_user_actions "github.com" "user1"
     
@@ -221,7 +221,7 @@ teardown() {
 
 # Test site_user_actions with missing parameters
 @test "site_user_actions handles missing parameters" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     run site_user_actions "" "user1"
     
@@ -231,7 +231,7 @@ teardown() {
 
 # Test site_user_actions copy password functionality
 @test "site_user_actions copy password works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock rofi to select copy password
     rofi() {
@@ -249,7 +249,7 @@ teardown() {
 
 # Test site_user_actions edit password functionality
 @test "site_user_actions edit password works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock rofi to select edit password
     rofi() {
@@ -268,7 +268,7 @@ teardown() {
 
 # Test site_user_actions delete user functionality
 @test "site_user_actions delete user works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock rofi to select delete user
     rofi() {
@@ -287,7 +287,7 @@ teardown() {
 
 # Test site_menu add new user functionality
 @test "site_menu add new user works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site
     get_users_for_site() {
@@ -312,7 +312,7 @@ teardown() {
 
 # Test site_menu edit passwords functionality
 @test "site_menu edit passwords works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site
     get_users_for_site() {
@@ -336,7 +336,7 @@ teardown() {
 
 # Test site_menu delete entries functionality
 @test "site_menu delete entries works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site
     get_users_for_site() {
@@ -360,7 +360,7 @@ teardown() {
 
 # Test site_menu back functionality
 @test "site_menu back option works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site
     get_users_for_site() {
@@ -384,7 +384,7 @@ teardown() {
 
 # Test site_user_actions back functionality
 @test "site_user_actions back option works" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock rofi to select back
     rofi() {
@@ -402,7 +402,7 @@ teardown() {
 
 # Test empty selection (user cancels)
 @test "site_menu handles empty selection" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock get_users_for_site
     get_users_for_site() {
@@ -426,7 +426,7 @@ teardown() {
 
 # Test clipboard copy failure
 @test "site_user_actions handles clipboard copy failure" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock clipboard_copy to fail
     clipboard_copy() {
@@ -450,7 +450,7 @@ teardown() {
 
 # Test pass show failure
 @test "site_user_actions handles pass show failure" {
-    source menu/site_menu.sh
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_site.sh"
     
     # Mock pass to fail
     pass() {
@@ -470,4 +470,15 @@ teardown() {
     
     # Should show error message
     assert_output "NOTIFY_ERROR: Failed to retrieve password for nonexistent@github.com"
-} 
+}
+
+# Source all required scripts for site menu tests
+source "$(dirname "$BATS_TEST_FILENAME")/../menu_add_entry.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../menu_edit_passwords.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../menu_update_entry.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../menu_delete_entry.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../menu_confirm_action.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../util_notify.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../util_pass.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../util_config.sh"
+source "$(dirname "$BATS_TEST_FILENAME")/../util_clipboard.sh" 

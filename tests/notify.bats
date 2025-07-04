@@ -18,7 +18,10 @@ notifications.error.enabled=true
 EOF
 
     # Source the script under test
-    source "$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_pass.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_config.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_clipboard.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_gpg.sh"
 
     # Mock all possible notification tools
     for tool in notify-send kdialog zenity; do
@@ -94,7 +97,7 @@ EOF
 
     # Get absolute path to notify.sh
     local notify_sh_path
-    notify_sh_path="$(dirname "$BATS_TEST_FILENAME")/../utils/notify.sh"
+    notify_sh_path="$(dirname "$BATS_TEST_FILENAME")/../util_notify.sh"
 
     # Restrict PATH to our special mock dir and run the test
     run bash -c "export PATH=\"$MOCK_FALLBACK_DIR\"; . \"$notify_sh_path\"; notify_error \"An error for echo\""

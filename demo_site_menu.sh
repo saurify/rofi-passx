@@ -1,62 +1,15 @@
 #!/usr/bin/env bash
+# demo_site_menu.sh — Demo: show the site-level menu for the first site in the password store
+set -euo pipefail
 
-# Demo script to show site menu functionality
+chmod +x util_startup.sh menu_site.sh
+export PASSWORD_STORE_DIR="$HOME/.password-store"
 
-# Source required utilities
-export ROFI_PASSX_TEST_MODE=1
-source utils/notify.sh
-source utils/pass.sh
-
-echo "=== rofi-passx Site Menu Demonstration ==="
-echo ""
-
-# Show available sites
-echo "Available sites in your password store:"
-for site in $(ls ~/.password-store/web/ | sort); do
-    echo "🌐 $site"
-done
-
-echo ""
-echo "=== Site Menu for: example.com ==="
-echo "Users: 2"
-echo ""
-
-# Show the site menu options
-echo "👤 admin"
-echo "👤 user1"
-echo "➕ Add New User"
-echo "✏️ Edit Passwords"
-echo "🗑️ Delete Entries"
-echo "↩ Back"
-
-echo ""
-echo "=== User Actions for: admin@example.com ==="
-echo ""
-
-# Show user action options
-echo "📋 Copy Password"
-echo "✏️ Edit Password"
-echo "🗑️ Delete User"
-echo "↩ Back"
-
-echo ""
-echo "=== Functionality ==="
-echo ""
-
-# Test the get_users_for_site function
-echo "Users for example.com:"
-get_users_for_site "example.com"
-
-echo ""
-echo "=== Notification Examples ==="
-echo ""
-
-# Show notification examples
-notify_copy "Password for admin@example.com copied to clipboard"
-notify_update "Password updated for admin@example.com"
-notify_delete "User admin deleted from example.com"
-notify_generate "New user added to example.com"
-notify_error "Failed to retrieve password for admin@example.com"
-
-echo ""
-echo "=== Demo Complete ===" 
+./util_startup.sh
+first_site=$(ls "$PASSWORD_STORE_DIR/web" 2>/dev/null | head -n1)
+if [[ -n "$first_site" ]]; then
+    ./menu_site.sh "$first_site"
+else
+    echo "No sites found in password store."
+    exit 1
+fi 

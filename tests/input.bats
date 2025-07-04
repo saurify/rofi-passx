@@ -89,7 +89,13 @@ EOF
     chmod +x "$MOCK_DIR/grep"
 
     # Source the input menu functions
-    source "$(dirname "$BATS_TEST_FILENAME")/../menu/add_entry_menu.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../menu_add_entry.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_notify.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_pass.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_config.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_clipboard.sh"
+    source "$(dirname "$BATS_TEST_FILENAME")/../util_gpg.sh"
+    ADD_ENTRY_MENU_SCRIPT="$(dirname "$BATS_TEST_FILENAME")/../menu_add_entry.sh"
 }
 
 @test "[input] input_password_create calls pass_create with correct arguments" {
