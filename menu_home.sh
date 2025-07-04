@@ -3,7 +3,7 @@
 # Provides: home_menu
 
 # Source utility functions if not already sourced
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 if ! declare -F site_menu >/dev/null; then
     if [[ -f "$SCRIPT_DIR/menu_site.sh" ]]; then
         source "$SCRIPT_DIR/menu_site.sh"
@@ -24,9 +24,14 @@ if ! declare -F confirm >/dev/null; then
         source "$SCRIPT_DIR/menu_confirm_action.sh"
     fi
 fi
-if ! declare -F delete_site_menu >/dev/null; then
+if ! declare -F delete_all_sites_menu >/dev/null; then
     if [[ -f "$SCRIPT_DIR/menu_delete_entry.sh" ]]; then
         source "$SCRIPT_DIR/menu_delete_entry.sh"
+    fi
+fi
+if ! declare -F nav_push >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_navigation.sh" ]]; then
+        source "$SCRIPT_DIR/util_navigation.sh"
     fi
 fi
 
@@ -52,26 +57,19 @@ home_menu() {
     case "$site_sel" in
         "🌐 "*)
             local site="${site_sel#🌐 }"
+            nav_push home_menu
             site_menu "$site"
             ;;
         "➕ Import Passwords from CSV")
+            nav_push home_menu
             import_passwords_menu
             ;;
         "🗑️ Delete Site Data")
-            # Show a list of sites, let user pick one, then call delete_site_menu for that site
-            local sites site_items site_sel
-            sites=$(get_sites_in_store)
-            site_items=()
-            while read -r site; do
-                [[ -n "$site" ]] && site_items+=("$site")
-            done <<< "$sites"
-            site_items+=("↩ Back")
-            site_sel=$(printf "%s\n" "${site_items[@]}" | rofi -dmenu -p "Select site to delete:" -mesg "Choose a site to delete all credentials")
-            [[ -z "$site_sel" || "$site_sel" == "↩ Back" ]] && return 1
-            delete_site_menu "$site_sel"
+            nav_push home_menu
+            delete_all_sites_menu
             ;;
         "↩ Back")
-            return 1
+            rofi -dmenu
             ;;
     esac
 }
@@ -88,8 +86,12 @@ import_passwords_menu() {
     done
     csv_items+=("↩ Back")
     csv_sel=$(printf "%s\n" "${csv_items[@]}" | rofi -dmenu -p "Select CSV to import:" -mesg "Choose a CSV file from $csv_dir")
-    [[ -z "$csv_sel" || "$csv_sel" == "↩ Back" ]] && return 1
+    if [[ -z "$csv_sel" || "$csv_sel" == "↩ Back" ]]; then
+        home_menu
+        return 1
+    fi
     pass_import_csv "$csv_dir/$csv_sel"
+    home_menu
 }
 
 # If run directly, call home_menu

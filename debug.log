@@ -1,0 +1,301 @@
++ set -euo pipefail
++++ dirname ./rofi-passx
+++ cd .
+++ pwd
++ SCRIPT_DIR=/home/saurify/project/rofi-script-project/rofi-passx
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_config.sh
+++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ dirname /home/saurify/.config/rofi-passx/config.sh
+++ CONFIG_DIR=/home/saurify/.config/rofi-passx
+++ declare -F notify_generate
+++ declare -F notify_update
+++ declare -F notify_error
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_startup.sh
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
+++ source util_gpg.sh
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_pass.sh
++++ source util_gpg.sh
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_clipboard.sh
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_pass.sh
+++ source util_gpg.sh
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_notify.sh
+++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_clipboard.sh
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/util_gpg.sh
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_home.sh
+++++ dirname /home/saurify/project/rofi-script-project/rofi-passx/menu_home.sh
++++ cd /home/saurify/project/rofi-script-project/rofi-passx
++++ pwd
+++ SCRIPT_DIR=/home/saurify/project/rofi-script-project/rofi-passx
+++ declare -F site_menu
+++ [[ -f /home/saurify/project/rofi-script-project/rofi-passx/menu_site.sh ]]
+++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_site.sh
++++ declare -F get_users_for_site
++++ declare -F notify_error
++++ declare -F input_password_create
++++ [[ -f menu_add_entry.sh ]]
++++ source menu_add_entry.sh
+++++ source util_pass.sh
++++++ source util_gpg.sh
+++++++ source util_notify.sh
++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++++ [[ -n '' ]]
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_gpg.sh
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ declare -F input_password_update
++++ [[ -f menu_update_entry.sh ]]
++++ source menu_update_entry.sh
+++++ source util_pass.sh
++++++ source util_gpg.sh
+++++++ source util_notify.sh
++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++++ [[ -n '' ]]
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ declare -F edit_passwords_menu
++++ [[ -f menu_edit_passwords.sh ]]
++++ source menu_edit_passwords.sh
+++++ source util_pass.sh
++++++ source util_gpg.sh
+++++++ source util_notify.sh
++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++++ [[ -n '' ]]
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
+++++ source menu_update_entry.sh
++++++ source util_pass.sh
+++++++ source util_gpg.sh
++++++++ source util_notify.sh
+++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++++ [[ -n '' ]]
+++++++ source util_notify.sh
++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++++ [[ -n '' ]]
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
++++ declare -F delete_individual_entry
++++ [[ -f menu_delete_entry.sh ]]
++++ source menu_delete_entry.sh
+++++ source util_pass.sh
++++++ source util_gpg.sh
+++++++ source util_notify.sh
++++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++++ [[ -n '' ]]
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
+++++ source menu_confirm_action.sh
++++ declare -F confirm
++++ declare -F clipboard_copy
++++ [[ /home/saurify/project/rofi-script-project/rofi-passx/menu_site.sh == \.\/\r\o\f\i\-\p\a\s\s\x ]]
+++ declare -F pass_import_csv
+++ declare -F notify_error
+++ declare -F confirm
+++ declare -F delete_site_menu
+++ [[ /home/saurify/project/rofi-script-project/rofi-passx/menu_home.sh == \.\/\r\o\f\i\-\p\a\s\s\x ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_site.sh
+++ declare -F get_users_for_site
+++ declare -F notify_error
+++ declare -F input_password_create
+++ declare -F input_password_update
+++ declare -F edit_passwords_menu
+++ declare -F delete_individual_entry
+++ declare -F confirm
+++ declare -F clipboard_copy
+++ [[ /home/saurify/project/rofi-script-project/rofi-passx/menu_site.sh == \.\/\r\o\f\i\-\p\a\s\s\x ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_add_entry.sh
+++ source util_pass.sh
++++ source util_gpg.sh
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_gpg.sh
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_update_entry.sh
+++ source util_pass.sh
++++ source util_gpg.sh
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_delete_entry.sh
+++ source util_pass.sh
++++ source util_gpg.sh
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
+++ source menu_confirm_action.sh
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_edit_passwords.sh
+++ source util_pass.sh
++++ source util_gpg.sh
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
+++ source util_notify.sh
++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++ [[ -n '' ]]
+++ source menu_update_entry.sh
++++ source util_pass.sh
+++++ source util_gpg.sh
++++++ source util_notify.sh
+++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++++ [[ -n '' ]]
+++++ source util_notify.sh
++++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
++++++ [[ -n '' ]]
++++ source util_notify.sh
+++++ CONFIG_FILE=/home/saurify/.config/rofi-passx/config.sh
+++++ [[ -n '' ]]
++ source /home/saurify/project/rofi-script-project/rofi-passx/menu_confirm_action.sh
++ startup_initialize
++ startup_check_dependencies
++ missing=()
++ local missing
++ for dep in rofi pass gpg
++ command -v rofi
++ for dep in rofi pass gpg
++ command -v pass
++ for dep in rofi pass gpg
++ command -v gpg
++ [[ 0 -gt 0 ]]
++ return 0
++ startup_check_config
++ [[ ! -f /home/saurify/.config/rofi-passx/config.sh ]]
++ [[ ! -r /home/saurify/.config/rofi-passx/config.sh ]]
++ return 0
++ startup_check_password_store
++ local store_dir=/home/saurify/.password-store
++ [[ ! -d /home/saurify/.password-store ]]
++ [[ ! -f /home/saurify/.password-store/.gpg-id ]]
++ return 0
++ return 0
++ home_menu
++ local store=/home/saurify/.password-store
++ local sites site_items site_sel
+++ get_sites_in_store
+++ local store=/home/saurify/.password-store
+++ [[ -d /home/saurify/.password-store/web ]]
+++ ls -1 /home/saurify/.password-store/web
+++ sort
++ sites='authenticator.cursor.sh
+auth.openai.com
+github.com
+leetcode.com
+mullvad.net
+www.netflix.com'
++ site_items=()
++ read -r site
++ [[ -n authenticator.cursor.sh ]]
++ site_items+=("🌐 $site")
++ read -r site
++ [[ -n auth.openai.com ]]
++ site_items+=("🌐 $site")
++ read -r site
++ [[ -n github.com ]]
++ site_items+=("🌐 $site")
++ read -r site
++ [[ -n leetcode.com ]]
++ site_items+=("🌐 $site")
++ read -r site
++ [[ -n mullvad.net ]]
++ site_items+=("🌐 $site")
++ read -r site
++ [[ -n www.netflix.com ]]
++ site_items+=("🌐 $site")
++ read -r site
++ site_items+=("➕ Import Passwords from CSV")
++ site_items+=("🗑️ Delete Site Data")
++ site_items+=("↩ Back")
+++ printf '%s\n' '🌐 authenticator.cursor.sh' '🌐 auth.openai.com' '🌐 github.com' '🌐 leetcode.com' '🌐 mullvad.net' '🌐 www.netflix.com' '➕ Import Passwords from CSV' '🗑️ Delete Site Data' '↩ Back'
+++ rofi -dmenu -markup-rows -mesg 'Select a site or action' -p 'Home Menu:'
++ site_sel='🌐 authenticator.cursor.sh'
++ [[ -z 🌐 authenticator.cursor.sh ]]
++ case "$site_sel" in
++ local site=authenticator.cursor.sh
++ site_menu authenticator.cursor.sh
++ local site=authenticator.cursor.sh users sel mesg
++ [[ -z authenticator.cursor.sh ]]
+++ get_users_for_site authenticator.cursor.sh
+++ local domain=authenticator.cursor.sh
+++ local store=/home/saurify/.password-store
+++ local dir=/home/saurify/.password-store/web/authenticator.cursor.sh
+++ [[ -d /home/saurify/.password-store/web/authenticator.cursor.sh ]]
+++ find /home/saurify/.password-store/web/authenticator.cursor.sh -type f -name '*.gpg' -printf '%f\n'
+++ sed 's/\.gpg$//'
++ users=nemis28850@finfave.com
++ items=()
++ local items
++ local user_count=0
++ read -r user
++ [[ -n nemis28850@finfave.com ]]
++ items+=("👤 $user")
++ (( user_count++ ))

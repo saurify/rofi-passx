@@ -6,6 +6,11 @@
 source util_pass.sh
 source util_notify.sh
 source menu_confirm_action.sh
+if ! declare -F nav_push >/dev/null; then
+    if [[ -f "util_navigation.sh" ]]; then
+        source "util_navigation.sh"
+    fi
+fi
 
 # delete_individual_entry()
 #   Shows dialog to delete a specific user entry for a site.
@@ -33,7 +38,10 @@ delete_individual_entry() {
             done <<< "$users"
             user_items+=("↩ Back")
             user_sel=$(printf "%s\n" "${user_items[@]}" | rofi -dmenu -p "Select user to delete:" -mesg "Choose user entry to delete")
-            [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]] && return 1
+            if [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]]; then
+                nav_back
+                return 1
+            fi
             username="$user_sel"
         else
             # Fallback: prompt for username as free text
@@ -65,33 +73,30 @@ delete_individual_entry() {
 #   Output: Shows deletion options and handles user choice
 delete_site_menu() {
     local domain="$1" users user_sel
-    
-    # If domain not provided, ask for it
     if [[ -z "$domain" ]]; then
         domain=$(rofi -dmenu -p "Domain:" -mesg "Enter the website domain")
-        [[ -z "$domain" ]] && return 1
+        if [[ -z "$domain" ]]; then
+            nav_back
+            return 1
+        fi
     fi
-    
-    # Get users for this site
     users=$(find ~/.password-store/web/"$domain" -type f -name '*.gpg' 2>/dev/null \
       | sed 's|.gpg$||;s|.*/'"$domain"'/||' \
       | sort -u)
-    
     if [[ -z "$users" ]]; then
         notify_error "No entries found for $domain"
+        nav_back
         return 1
     fi
-    
-    # Create menu options
     local items=()
     items+=("🗑️ Delete ALL entries for $domain")
     items+=("👤 Delete specific user entry")
     items+=("↩ Back")
-    
-    # Show menu
     user_sel=$(printf "%s\n" "${items[@]}" | rofi -dmenu -p "Delete options for $domain:" -mesg "Choose deletion option")
-    [[ -z "$user_sel" ]] && return 1
-    
+    if [[ -z "$user_sel" ]]; then
+        nav_back
+        return 1
+    fi
     case "$user_sel" in
         "🗑️ Delete ALL entries for $domain")
             if confirm "Are you sure you want to delete ALL entries for $domain? This cannot be undone."; then
@@ -103,59 +108,59 @@ delete_site_menu() {
                         fi
                     fi
                 done <<< "$users"
-                
                 if [[ $deleted_count -gt 0 ]]; then
                     notify_delete "Deleted $deleted_count entries for $domain"
-                    return 0
                 else
                     notify_error "No entries were deleted for $domain"
-                    return 1
                 fi
             fi
+            nav_back
             ;;
         "👤 Delete specific user entry")
-            # Show user selection menu
-            local user_items=()
-            while read -r user; do
-                [[ -n "$user" ]] && user_items+=("$user")
-            done <<< "$users"
-            user_items+=("↩ Back")
-            
-            user_sel=$(printf "%s\n" "${user_items[@]}" | rofi -dmenu -p "Select user to delete:" -mesg "Choose user entry to delete")
-            [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]] && return 1
-            
-            delete_individual_entry "$domain" "$user_sel"
+            nav_push delete_site_menu "$domain"
+            delete_individual_entry "$domain"
             ;;
         "↩ Back")
-            return 1
+            nav_back
             ;;
     esac
 }
 
-# delete_entry_menu()
-#   Main deletion menu that allows choosing between site and individual deletion.
-#   Returns: 0 on success, 1 on failure
-#   Example: delete_entry_menu
-#   Output: Shows main deletion options
-delete_entry_menu() {
-    local items=()
-    items+=("🌐 Delete all entries for a site")
-    items+=("👤 Delete specific user entry")
-    items+=("↩ Back")
-    
-    local sel
-    sel=$(printf "%s\n" "${items[@]}" | rofi -dmenu -p "Delete Password Entries:" -mesg "Choose deletion type")
-    [[ -z "$sel" ]] && return 1
-    
-    case "$sel" in
-        "🌐 Delete all entries for a site")
-            delete_site_menu
-            ;;
-        "👤 Delete specific user entry")
-            delete_individual_entry
-            ;;
-        "↩ Back")
-            return 1
-            ;;
-    esac
-} 
+# delete_all_sites_menu()
+#   Shows a menu listing all sites in the password store.
+#   Allows selecting a site to manage its deletions via delete_site_menu,
+#   or going back to the previous menu.
+#   Returns: 0 on success, 1 on failure or user cancel
+#   Example: delete_all_sites_menu
+#   Output: Opens a rofi menu of sites with a back button
+delete_all_sites_menu() {
+    local sites site_items site_sel
+
+    # Get list of all sites
+    sites=$(get_sites_in_store)
+    if [[ -z "$sites" ]]; then
+        notify_error "No sites found in password store"
+        nav_back
+        return 1
+    fi
+
+    # Build menu items
+    site_items=()
+    while read -r site; do
+        [[ -n "$site" ]] && site_items+=("$site")
+    done <<< "$sites"
+    site_items+=("↩ Back")
+
+    # Show selection menu
+    site_sel=$(printf "%s\n" "${site_items[@]}" | rofi -dmenu -p "Select site:" -mesg "Choose a site to delete entries for")
+
+    # Handle user cancel or back
+    if [[ -z "$site_sel" || "$site_sel" == "↩ Back" ]]; then
+        nav_back
+        return 1
+    fi
+
+    # Navigate to delete_site_menu for selected site
+    nav_push delete_all_sites_menu
+    delete_site_menu "$site_sel"
+}

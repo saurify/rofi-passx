@@ -195,7 +195,6 @@ pass_remove() {
     return 1
   fi
   pass rm -f "$entry" 2>/dev/null || { echo "Error: could not remove entry $entry" >&2; return 1; }
-  notify_delete "Entry for '$user' at '$domain' deleted."
 }
 
 # pass_import_csv()
@@ -245,7 +244,7 @@ pass_import_csv() {
     local user="${fields[$user_col]//\"/}"
     local pass="${fields[$pass_col]//\"/}"
     if [[ -z "$domain" || -z "$user" || -z "$pass" ]]; then
-      notify_error "Skipping incomplete row: $line"
+      # notify_error "Skipping incomplete row: $line"
       continue
     fi
     # Sanitize domain: remove protocol, replace / with _
@@ -263,7 +262,7 @@ pass_import_csv() {
       entry_content+=$'\n'"url: $domain"
     fi
     if pass_insert "$entry_path" "$entry_content"; then
-      notify_generate "Imported: $user@$domain"
+      # notify_generate "Imported: $user@$domain"
       ((import_count++))
     else
       notify_error "Failed to import: $user@$domain (may already exist)"

@@ -6,6 +6,11 @@
 source util_pass.sh
 source util_notify.sh
 source menu_update_entry.sh
+if ! declare -F nav_push >/dev/null; then
+    if [[ -f "util_navigation.sh" ]]; then
+        source "util_navigation.sh"
+    fi
+fi
 
 # edit_user_password()
 #   Shows dialog to edit password for a specific user.
@@ -67,8 +72,11 @@ edit_passwords_menu() {
     
     # Show user selection menu
     user_sel=$(printf "%s\n" "${user_items[@]}" | rofi -dmenu -p "Select user to edit:" -mesg "Choose user to edit password for $domain")
-    [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]] && return 1
-    
+    if [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]]; then
+        nav_back
+        return 1
+    fi
+    nav_push edit_passwords_menu "$domain"
     # Edit the selected user's password
     edit_user_password "$domain" "$user_sel"
 } 

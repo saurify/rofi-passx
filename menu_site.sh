@@ -51,6 +51,12 @@ if ! declare -F clipboard_copy >/dev/null; then
     fi
 fi
 
+if ! declare -F nav_push >/dev/null; then
+    if [[ -f "util_navigation.sh" ]]; then
+        source "util_navigation.sh"
+    fi
+fi
+
 # site_menu()
 #   Shows a comprehensive site-level menu with all users and actions.
 #   Args: $1 = site/domain name
@@ -59,47 +65,36 @@ fi
 #   Output: Shows user list with add/edit/delete/copy options
 site_menu() {
     local site="$1" users sel mesg
-    
     if [[ -z "$site" ]]; then
         notify_error "Site name is required"
         return 1
     fi
-    
     # Get users for this site
     users=$(get_users_for_site "$site")
-    
     # Create menu items
     local items=()
     local user_count=0
-    
-    # Add users with icons
     while read -r user; do
         if [[ -n "$user" ]]; then
             items+=("👤 $user")
             ((user_count++))
         fi
     done <<< "$users"
-    
-    # Add action items
     items+=("➕ Add New User")
     items+=("✏️ Edit Passwords")
     items+=("🗑️ Delete Entries")
     items+=("↩ Back")
-    
-    # Show menu with keyboard navigation
     local mesg="Site: $site | Users: $user_count | Type to search, use arrow keys to navigate"
     sel=$(printf "%s\n" "${items[@]}" | rofi -dmenu -markup-rows -mesg "$mesg" -p "Site: $site")
-    
     [[ -z "$sel" ]] && return 1
-    
     case "$sel" in
         "👤 "*)
-            # User selected - show user actions
             local username="${sel#👤 }"
+            nav_push site_menu "$site"
             site_user_actions "$site" "$username"
             ;;
         "➕ Add New User")
-            # Use existing add_entry_menu function
+            nav_push site_menu "$site"
             if input_password_create "$site"; then
                 notify_generate "New user added to $site"
                 return 0
@@ -109,15 +104,15 @@ site_menu() {
             fi
             ;;
         "✏️ Edit Passwords")
-            # Use existing edit_passwords_menu function
+            nav_push site_menu "$site"
             edit_passwords_menu "$site"
             ;;
         "🗑️ Delete Entries")
-            # Use existing delete_individual_entry function for site-level deletion
+            nav_push site_menu "$site"
             delete_individual_entry "$site"
             ;;
         "↩ Back")
-            return 1
+            nav_back
             ;;
     esac
 }
@@ -167,7 +162,7 @@ site_user_actions() {
             fi
             ;;
         "✏️ Edit Password")
-            # Use existing update_entry_menu function
+            nav_push site_user_actions "$site" "$username"
             if input_password_update "$site" "$username"; then
                 notify_update "Password updated for $username@$site"
                 return 0
@@ -177,7 +172,7 @@ site_user_actions() {
             fi
             ;;
         "🗑️ Delete User")
-            # Use existing delete_individual_entry function
+            nav_push site_user_actions "$site" "$username"
             if delete_individual_entry "$site" "$username"; then
                 notify_delete "User $username deleted from $site"
                 return 0
@@ -187,7 +182,7 @@ site_user_actions() {
             fi
             ;;
         "↩ Back")
-            return 1
+            nav_back
             ;;
     esac
 }
