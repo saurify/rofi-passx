@@ -344,4 +344,35 @@ clear_password_vault() {
     rm -rf "$store/web"
     mkdir -p "$store/web"
     echo "[INFO] Password vault cleared."
+}
+
+# get_sites_in_store
+#   Lists all sites (directories) in the password store under web/
+#   Output: one site per line
+get_sites_in_store() {
+    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    if [[ -d "$store/web" ]]; then
+        ls -1 "$store/web" 2>/dev/null | sort
+    fi
+}
+
+# delete_site
+#   Deletes all entries for a given site (removes the site directory)
+#   Args: $1 = site/domain
+#   Returns: 0 on success, 1 on failure
+delete_site() {
+    local site="$1"
+    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    if [[ -z "$site" ]]; then
+        echo "Error: site name required" >&2
+        return 1
+    fi
+    if [[ -d "$store/web/$site" ]]; then
+        rm -rf "$store/web/$site"
+        notify_delete "All credentials for $site deleted."
+        return 0
+    else
+        notify_error "Site $site not found."
+        return 1
+    fi
 } 
