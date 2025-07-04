@@ -9,21 +9,15 @@ license=('MIT')
 depends=('bash' 'gnupg' 'pass' 'rofi' 'xclip' 'xdg-utils' 'coreutils' 'libnotify')
 optdepends=('wl-clipboard: Wayland clipboard support')
 install=rofi-passx.install
-source=(
-    "rofi-passx"
-    "onboard.sh"
-    "import.sh"
-    "launch.sh"
-    "vault.sh"
-    "rofi-passx.desktop"
-)
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+source=("rofi-passx-1.0.0.tar.gz")
+sha256sums=('SKIP')
 
 package() {
-    install -Dm755 "$srcdir/rofi-passx" "$pkgdir/usr/bin/rofi-passx"
-    install -Dm755 "$srcdir/onboard.sh" "$pkgdir/usr/bin/rofi-passx-onboard"
-    install -Dm755 "$srcdir/import.sh" "$pkgdir/usr/bin/rofi-passx-import"
-    install -Dm755 "$srcdir/launch.sh" "$pkgdir/usr/bin/rofi-passx-launch"
-    install -Dm755 "$srcdir/vault.sh" "$pkgdir/usr/lib/rofi-passx-vault.sh"
-    install -Dm644 "$srcdir/rofi-passx.desktop" "$pkgdir/usr/share/applications/rofi-passx.desktop"
+    cd "$srcdir/rofi-passx"
+    install -Dm755 rofi-passx "$pkgdir/usr/bin/rofi-passx"
+    install -Dm755 rofi-passx-setup "$pkgdir/usr/bin/rofi-passx-setup"
+    for f in util_*.sh menu_*.sh; do
+        install -Dm644 "$f" "$pkgdir/usr/lib/rofi-passx/$f"
+    done
+    install -Dm644 rofi-passx.desktop "$pkgdir/usr/share/applications/rofi-passx.desktop"
 } 

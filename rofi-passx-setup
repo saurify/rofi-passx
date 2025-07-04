@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+CONFIG_DIR="$HOME/.config/rofi-passx"
+VAULT_DIR="$HOME/.password-store"
+GPGID_FILE="$VAULT_DIR/.gpg-id"
+
+echo "==> [rofi-passx-setup] Starting setup..."
+
+# 1. Check for GPG key (reuse or create)
+if gpg --list-secret-keys --with-colons | grep -q '^sec'; then
+    echo "✔ GPG key exists."
+else
+    echo "✖ No GPG keys found. Generating a new key..."
+    USERNAME=$(git config --get user.name)
+    EMAIL=$(git config --get user.email)
+    USERNAME=${USERNAME:-$(getent passwd "$USER" | cut -d ':' -f 5 | cut -d ',' -f 1)}
+    EMAIL=${EMAIL:-"$USER@$(hostname -d 2>/dev/null || echo 'localhost')"}
+    cat >gen-key-script <<EOF
+%no-protection
+Key-Type: default
+Key-Length: 4096
+Subkey-Type: default
+Name-Real: $USERNAME
+Name-Email: $EMAIL
+Expire-Date: 0
+EOF
+    gpg --batch --generate-key gen-key-script
+    rm gen-key-script
+    echo "✔ GPG key created for $USERNAME <$EMAIL>."
+fi
+
+# 2. Determine which GPG key to use
+if [[ -f "$GPGID_FILE" && -s "$GPGID_FILE" ]]; then
+    GPG_KEY=$(head -n1 "$GPGID_FILE" | xargs)
+    echo "✔ Reusing GPG key from previous store: $GPG_KEY"
+else
+    GPG_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')
+    echo "✔ Using GPG key: $GPG_KEY"
+fi
+
+# 3. Initialize password store if not already
+if [[ ! -d "$VAULT_DIR" || ! -s "$GPGID_FILE" ]]; then
+    echo "🔐 Initializing password store with key $GPG_KEY..."
+    pass init "$GPG_KEY"
+    echo "✔ Password store initialized."
+else
+    echo "✔ Password store already initialized."
+fi
+
+echo "==> [rofi-passx-setup] Setup complete."
+# Do not exit or return here; let the parent script continue 

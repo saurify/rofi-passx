@@ -1,12 +1,24 @@
-# Build and packaging artifacts
+# Linux packaging artifacts
+*.pkg.tar.zst
 pkg/
-*.pkg.tar.*
-*.tar.*
-*.zst
-*.log
-*.lock
 src/
-# Editor/OS files
-*~
+
+# testing artifacts
+/tests/test_helper/
+
+# OS-specific
 .DS_Store
+Thumbs.db
+
+# Editor-specific
+.vscode/
+.idea/
 *.swp
+*.swo
+
+# Debug and result logs
+debug_menu_site.log
+debug_demo_site_menu.log
+err.txt
+result.txt
+debug.log
