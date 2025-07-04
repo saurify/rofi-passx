@@ -22,10 +22,24 @@ delete_individual_entry() {
         [[ -z "$domain" ]] && return 1
     fi
     
-    # If username not provided, ask for it
+    # If username not provided, show a menu of users for the domain
     if [[ -z "$username" ]]; then
-        username=$(rofi -dmenu -p "Username:" -mesg "Enter the username to delete")
-        [[ -z "$username" ]] && return 1
+        local users user_items user_sel
+        users=$(get_users_for_site "$domain")
+        if [[ -n "$users" ]]; then
+            user_items=()
+            while read -r user; do
+                [[ -n "$user" ]] && user_items+=("$user")
+            done <<< "$users"
+            user_items+=("↩ Back")
+            user_sel=$(printf "%s\n" "${user_items[@]}" | rofi -dmenu -p "Select user to delete:" -mesg "Choose user entry to delete")
+            [[ -z "$user_sel" || "$user_sel" == "↩ Back" ]] && return 1
+            username="$user_sel"
+        else
+            # Fallback: prompt for username as free text
+            username=$(rofi -dmenu -p "Username:" -mesg "Enter the username to delete")
+            [[ -z "$username" ]] && return 1
+        fi
     fi
     
     # Confirm deletion

@@ -28,7 +28,7 @@ input_password_update() {
     
     # Check if entry exists
     local entry="web/${domain}/${username}"
-    if ! pass ls | grep -q "^${entry}$"; then
+    if ! pass show "$entry" &>/dev/null; then
         notify_error "Error: Entry for '$username' at '$domain' does not exist"
         return 1
     fi
