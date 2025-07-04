@@ -1,37 +1,56 @@
 # rofi-passx
 
-**A modern, extensible, and user-friendly password manager interface for [pass](https://www.passwordstore.org/) using [rofi](https://github.com/davatorium/rofi).**
+A modular, user-friendly password manager interface for [pass](https://www.passwordstore.org/) using [rofi](https://github.com/davatorium/rofi).
 
 ---
 
 ## Overview
 
-`rofi-passx` is a shell-based menu system that provides a seamless graphical interface for managing your password store via `rofi`. Building on the foundation of the original [rofi-pass](https://github.com/carnager/rofi-pass), `rofi-passx` introduces a more modular, maintainable, and extensible codebase, with improved navigation and user experience.
-
-If you are looking for a natural successor to `rofi-pass`, with a focus on scriptability, maintainability, and a modern UX, `rofi-passx` is designed for you.
+`rofi-passx` provides a graphical menu system for managing your password store via `rofi`. It is designed to be modular, maintainable, and extensible, allowing users to manage credentials efficiently from a keyboard-driven interface.
 
 ---
 
 ## Features
 
-- **Full integration with `pass`**: All password management is done via the standard [pass](https://www.passwordstore.org/) utility.
-- **Rofi-powered UI**: Fast, keyboard-driven menu navigation for all password operations.
-- **Multi-level navigation**: Easily browse sites, users, and credentials with a stack-based menu system.
-- **Add, edit, update, and delete entries**: Manage your credentials with ease.
-- **CSV import**: Quickly migrate credentials from other password managers.
-- **GPG key management**: Initialize and switch GPG keys for your password store.
-- **Notifications**: Get instant feedback on actions via desktop notifications.
-- **Extensible and modular**: Each menu and utility is a separate script for easy customization and extension.
+- **Integration with `pass`**: All password management is performed using the standard [pass](https://www.passwordstore.org/) utility.
+- **Rofi-based UI**: Keyboard-driven menu navigation for all password operations.
+- **Multi-level navigation**: Browse sites, users, and credentials with a stack-based menu system.
+- **Credential management**: Add, edit, update, and delete entries.
+- **CSV import**: Import credentials from CSV files.
+- **Desktop notifications**: Receive feedback on actions via notifications.
+- **Clipboard integration**: Copy passwords or usernames to your clipboard securely.
+- **Modular structure**: Each menu and utility is a separate script for easy customization and extension.
 
 ---
 
 ## Prerequisites
 
-- **Linux** (tested on modern distributions)
-- **[pass](https://www.passwordstore.org/)** (the standard Unix password manager)
-- **[rofi](https://github.com/davatorium/rofi)** (for the graphical menu)
-- **gpg** (for encryption)
-- **bash** (or compatible shell)
+To ensure all features work as intended, you should have the following tools installed:
+
+- **[pass](https://www.passwordstore.org/):** The standard Unix password manager.
+- **[rofi](https://github.com/davatorium/rofi):** For the graphical menu interface.
+- **gpg:** For encryption and decryption of passwords.
+- **bash:** Or a compatible POSIX shell.
+- **Clipboard utility:**
+  - Recommended: `xclip` (for X11)
+  - Alternative: `xsel` (for X11)
+  - For Wayland-native clipboard support, you may also want `wl-clipboard`, but see the note below.
+- **Notification utility:**
+  - Recommended: `notify-send` (provided by `libnotify`)
+
+You can install these dependencies using your system's package manager. For example, on Arch Linux:
+```sh
+sudo pacman -S pass rofi gnupg xclip libnotify
+```
+Or on Debian/Ubuntu:
+```sh
+sudo apt install pass rofi gnupg xclip libnotify-bin
+```
+
+> **Note:**
+> - **Rofi is an X11 application.** On Wayland compositors, Rofi runs via XWayland (an X11 compatibility layer). This works on most setups, but is not native Wayland. If you encounter issues, check that XWayland is enabled in your compositor.
+> - **Clipboard integration** in this project uses X11 tools (`xclip` or `xsel`). These work with Rofi under XWayland. If you use Wayland-native applications, you may also want `wl-clipboard`, but copying from Rofi menus will still use the X11 clipboard.
+> - **Notifications** via `notify-send` should work on both X11 and Wayland, provided a notification daemon is running.
 
 ---
 
@@ -43,12 +62,8 @@ If you are looking for a natural successor to `rofi-pass`, with a focus on scrip
    cd rofi-passx
    ```
 
-2. **(Optional) Install dependencies:**
-   - Ensure `pass`, `rofi`, and `gpg` are installed via your package manager:
-     ```sh
-     sudo pacman -S pass rofi gnupg   # Arch Linux
-     sudo apt install pass rofi gnupg # Debian/Ubuntu
-     ```
+2. **Install dependencies:**
+   - See the prerequisites above for the full list of required tools.
 
 3. **Make scripts executable:**
    ```sh
@@ -66,7 +81,7 @@ If you are looking for a natural successor to `rofi-pass`, with a focus on scrip
 
 ### 1. Initialize your password store
 
-If you haven’t already, initialize your password store with your GPG key:
+If you haven't already, initialize your password store with your GPG key:
 ```sh
 pass init "YOUR-GPG-ID"
 ```
@@ -77,7 +92,7 @@ Or use the setup script:
 
 ### 2. Launch the menu
 
-Simply run:
+Run:
 ```sh
 ./rofi-passx
 ```
@@ -86,7 +101,7 @@ or, if installed to your PATH:
 rofi-passx
 ```
 
-### 3. Navigate
+### 3. Navigation
 
 - Use the keyboard to select sites, users, and actions.
 - Add, edit, or delete credentials as needed.
@@ -100,46 +115,19 @@ rofi-passx
 - **Edit Entry**: Edit an existing credential.
 - **Delete Entry**: Remove a credential or an entire site.
 - **Import CSV**: Import credentials from a CSV file (with columns: domain, username, password).
-- **Switch GPG Key**: Change the GPG key used for encryption.
 - **Notifications**: Desktop notifications inform you of successful or failed actions.
+- **Clipboard**: Copy passwords or usernames to your clipboard for easy pasting.
 
-All actions are performed securely using `pass` and GPG.
-
----
-
-## How is `rofi-passx` different from [rofi-pass](https://github.com/carnager/rofi-pass)?
-
-- **Modular Design**: Each menu and utility is a separate script, making it easier to maintain and extend.
-- **Stack-based Navigation**: Improved user experience with a robust navigation stack, allowing for intuitive back-and-forth movement between menus.
-- **CSV Import**: Built-in support for importing credentials from CSV files.
-- **Extensibility**: Designed for easy customization and addition of new features.
-- **Cleaner Codebase**: Adheres to modern shell scripting practices and coding guidelines.
-
-**If you liked `rofi-pass`, you’ll find `rofi-passx` a natural, modern successor with a focus on maintainability and user experience.**
+All actions are performed using `pass` and GPG.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please see `CODING_GUIDELINES.md` for best practices.
+Contributions are welcome. Please see any included guidelines or open an issue for questions.
 
 ---
 
 ## License
 
 This project is licensed under the MIT License.
-
----
-
-## Acknowledgements
-
-- Inspired by [rofi-pass](https://github.com/carnager/rofi-pass) and the Unix philosophy of modular, scriptable tools.
-- Thanks to all contributors and users of the original `rofi-pass` project.
-
----
-
-For more details, see the in-script documentation and comments, or open an issue if you have questions.
-
----
-
-Let me know if you want to further tailor this README for a specific audience or add more technical details!
