@@ -12,7 +12,14 @@ source util_notify.sh
 #   Output: Copies text to system clipboard
 clipboard_copy() {
   local text="$1"
-  local tools=("${CLIPBOARD_TOOLS_DEFAULT[@]:-xclip xsel wl-copy}")
+  # Future-proof: allow CLIPBOARD_TOOLS_DEFAULT to be a space-separated list, or extend to config/env
+  local tools
+  if [[ -n "${CLIPBOARD_TOOLS_DEFAULT:-}" ]]; then
+    # shellcheck disable=SC2206
+    tools=(${CLIPBOARD_TOOLS_DEFAULT})
+  else
+    tools=(xclip xsel wl-copy)
+  fi
   local tool
 
   for tool in "${tools[@]}"; do

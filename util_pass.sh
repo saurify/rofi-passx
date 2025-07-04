@@ -75,13 +75,15 @@ pass_show() {
 #   Output: No output on success
 pass_insert() {
   local entry="$1"
-  local password="${2:-}"
+  local content="${2:-}"
   if [[ -z "$entry" ]]; then
     echo "Error: entry name required" >&2
     return 1
   fi
-  if [[ -n "$password" ]]; then
-    echo "$password" | pass insert "$entry" 2>/dev/null || { echo "Error: could not insert entry $entry" >&2; return 1; }
+  if [[ -n "$content" ]]; then
+    pass insert -m "$entry" <<EOF
+$content
+EOF
   else
     pass insert "$entry" 2>/dev/null || { echo "Error: could not insert entry $entry" >&2; return 1; }
   fi
@@ -246,7 +248,21 @@ pass_import_csv() {
       notify_error "Skipping incomplete row: $line"
       continue
     fi
-    if pass_create "$domain" "$user" "$pass"; then
+    # Sanitize domain: remove protocol, replace / with _
+    local sanitized_domain="$domain"
+    sanitized_domain="${sanitized_domain#http://}"
+    sanitized_domain="${sanitized_domain#https://}"
+    sanitized_domain="${sanitized_domain//\//_}"
+    local entry_path="web/${sanitized_domain}/${user}"
+    local entry_content="$pass"
+    # Optionally add username and url as extra lines if available
+    if [[ -n "$user" ]]; then
+      entry_content+=$'\n'"username: $user"
+    fi
+    if [[ -n "$domain" ]]; then
+      entry_content+=$'\n'"url: $domain"
+    fi
+    if pass_insert "$entry_path" "$entry_content"; then
       notify_generate "Imported: $user@$domain"
       ((import_count++))
     else
@@ -305,4 +321,27 @@ get_users_for_site() {
     else
         return 1
     fi
+}
+
+# get_entry_path
+#   Returns the relative path to a pass entry for a given site and username.
+#   Args: $1 = site/domain, $2 = username
+#   Output: path (e.g., web/example.com/user)
+get_entry_path() {
+    local site="$1"
+    local username="$2"
+    echo "web/${site}/${username}"
+}
+
+# clear_password_vault
+#   DEVELOPMENT ONLY! DANGEROUS!
+#   Deletes all entries in the password store (recursively removes $PASSWORD_STORE_DIR/web and all subfolders).
+#   DO NOT expose this in any UI or production code.
+clear_password_vault() {
+    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    echo "[WARNING] This will delete ALL entries in $store/web. Press Ctrl+C to abort."
+    sleep 2
+    rm -rf "$store/web"
+    mkdir -p "$store/web"
+    echo "[INFO] Password vault cleared."
 } 
