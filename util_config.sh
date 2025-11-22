@@ -1,7 +1,7 @@
-# config.sh — handles user config (~/.config/rofi-passx/config.sh)
+# config.sh — handles user config (~/.config/rofi-passx/config)
 # Provides: config_create, config_regenerate, config_open
 
-CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config.sh}"
+CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config}"
 CONFIG_DIR="${CONFIG_DIR:-$(dirname "$CONFIG_FILE")}"
 
 # Fallback notification function if notify.sh isn't sourced
@@ -22,6 +22,48 @@ if ! declare -F notify_error >/dev/null; then
         echo "ERROR: $1"
     }
 fi
+
+# load_config()
+#   Reads configuration file and exports allowed variables.
+#   Returns: 0 on success
+#   Example: load_config
+load_config() {
+    if [[ -f "$CONFIG_FILE" ]]; then
+        while read -r line; do
+            # Skip comments and empty lines
+            [[ "$line" =~ ^#.*$ ]] && continue
+            [[ -z "$line" ]] && continue
+            
+            # Parse key=value
+            if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                local key="${BASH_REMATCH[1]}"
+                local value="${BASH_REMATCH[2]}"
+                
+                # Trim whitespace
+                key="${key#"${key%%[![:space:]]*}"}"
+                key="${key%"${key##*[![:space:]]}"}"
+                value="${value#"${value%%[![:space:]]*}"}"
+                value="${value%"${value##*[![:space:]]}"}"
+                
+                # Remove quotes
+                value="${value%\"}"
+                value="${value#\"}"
+                value="${value%\'}"
+                value="${value#\'}"
+                
+                # Export allowed variables
+                case "$key" in
+                    PASSWORD_STORE_DIR)
+                        export PASSWORD_STORE_DIR="$value"
+                        ;;
+                    PASSWORD_IMPORT_DIR)
+                        export PASSWORD_IMPORT_DIR="$value"
+                        ;;
+                esac
+            fi
+        done < "$CONFIG_FILE"
+    fi
+}
 
 # config_create()
 #   Creates default config file if it doesn't exist.
@@ -51,6 +93,9 @@ config_create() {
 #
 # The directory where your password store is located.
 # PASSWORD_STORE_DIR="$HOME/.password-store"
+#
+# The directory to import CSV files from.
+# PASSWORD_IMPORT_DIR="$HOME/Downloads"
 
 # --- Notifications ---
 #

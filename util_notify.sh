@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # notify.sh — abstraction over system notifications with per‐action toggles
+# Uses: ~/.config/rofi-passx/config
 
 CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config}"
 

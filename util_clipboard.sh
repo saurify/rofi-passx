@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # clipboard.sh — cross-platform clipboard operations
+# Uses: ~/.config/rofi-passx/config for clipboard tool preferences
 
 # Source notification utilities
 source util_notify.sh

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# menu_edit_passwords.sh — edit passwords menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 # edit_passwords_menu.sh — Rofi-based password editing dialogs
 # Provides: edit_passwords_menu, edit_user_password
 

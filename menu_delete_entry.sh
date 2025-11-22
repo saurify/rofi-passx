@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# delete_entry_menu.sh — Rofi-based deletion dialogs for password entries
+# menu_delete_entry.sh — delete entry menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 # Provides: delete_entry_menu, delete_site_menu, delete_individual_entry
 
 # Source utility functions if not already sourced

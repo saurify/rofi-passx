@@ -8,4 +8,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BATS_CORE_DIR="$SCRIPT_DIR/test_helper/bats-core"
 
 # Run utility tests (notify, pass, config)
-"$BATS_CORE_DIR/bin/bats" "$SCRIPT_DIR/notify.bats" "$SCRIPT_DIR/pass.bats" "$SCRIPT_DIR/config_test.sh" 
+"$BATS_CORE_DIR/bin/bats" "$SCRIPT_DIR/notify.bats" "$SCRIPT_DIR/pass.bats" "$SCRIPT_DIR/config.bats" 

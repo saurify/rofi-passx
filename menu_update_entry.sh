@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# menu_update_entry.sh — update entry menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 # update_entry_menu.sh — Rofi-based input dialogs for updating password entries
 # Provides: input_password_update
 

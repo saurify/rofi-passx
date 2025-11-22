@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# pass.sh — password store operations
+# util_pass.sh — password store utilities
+# Uses: ~/.config/rofi-passx/config for configuration
 
 # Source gpg utilities for gpg_get_first_key
 source util_gpg.sh

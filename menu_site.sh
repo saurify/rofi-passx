@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# menu_site.sh — site menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 # site_menu.sh — Rofi-based site-level menu for managing users and actions
 # Provides: site_menu
 
@@ -174,7 +176,6 @@ site_user_actions() {
         "🗑️ Delete User")
             nav_push site_user_actions "$site" "$username"
             if delete_individual_entry "$site" "$username"; then
-                notify_delete "User $username deleted from $site"
                 return 0
             else
                 notify_error "Failed to delete $username from $site"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# util_startup.sh — application startup and initialization utilities
 # startup.sh — application startup and initialization utilities
 
 # Source all utilities relative to this script's location
@@ -91,6 +92,9 @@ startup_check_config() {
     echo "Config file not readable: $CONFIG_FILE" >&2
     return 1
   fi
+  
+  # Load configuration variables
+  load_config
   
   return 0
 }

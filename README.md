@@ -122,8 +122,24 @@ rofi-passx
 - **Import CSV**: Import credentials from a CSV file (with columns: domain, username, password).
 - **Notifications**: Desktop notifications inform you of successful or failed actions.
 - **Clipboard**: Copy passwords or usernames to your clipboard for easy pasting.
+- **Settings**: Open the configuration file to customize behavior.
 
 All actions are performed using `pass` and GPG.
+
+---
+
+## Configuration
+
+`rofi-passx` uses a configuration file located at `~/.config/rofi-passx/config`.
+This file is automatically created with default settings upon first run or when accessing the Settings menu.
+
+You can configure:
+- **Password Store Directory**: Custom location for your password store.
+- **Import Directory**: Custom location for CSV files to import.
+- **Notifications**: Enable/disable global or per-action notifications.
+- **Clipboard**: Preferred clipboard utilities.
+
+To edit the configuration, select "⚙️ Settings" from the main menu or manually edit the file.
 
 ---
 
