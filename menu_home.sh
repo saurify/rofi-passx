@@ -44,6 +44,11 @@ if ! declare -F input_add_entry > /dev/null; then
         source "$SCRIPT_DIR/menu_add_entry.sh"
     fi
 fi
+if ! declare -F settings_menu > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_settings.sh" ]]; then
+        source "$SCRIPT_DIR/menu_settings.sh"
+    fi
+fi
 
 # home_menu()
 #   Shows the main menu: lists all sites, import CSV, delete site, back
@@ -85,7 +90,7 @@ home_menu() {
             ;;
         "⚙️ Settings")
             nav_push home_menu
-            config_open
+            settings_menu
             ;;
     esac
 }
