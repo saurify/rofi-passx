@@ -314,7 +314,7 @@ Note: Existing passwords have NOT been re-encrypted."
 #   Example: get_users_for_site "github.com"
 get_users_for_site() {
     local domain="$1"
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     local dir="$store/web/$domain"
     if [[ -d "$dir" ]]; then
         find "$dir" -type f -name '*.gpg' -printf '%f\n' | sed 's/\.gpg$//' || return 1
@@ -338,7 +338,7 @@ get_entry_path() {
 #   Deletes all entries in the password store (recursively removes $PASSWORD_STORE_DIR/web and all subfolders).
 #   DO NOT expose this in any UI or production code.
 clear_password_vault() {
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     echo "[WARNING] This will delete ALL entries in $store/web. Press Ctrl+C to abort."
     sleep 2
     rm -rf "$store/web"
@@ -350,7 +350,7 @@ clear_password_vault() {
 #   Lists all sites (directories) in the password store under web/
 #   Output: one site per line
 get_sites_in_store() {
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     if [[ -d "$store/web" ]]; then
         ls -1 "$store/web" 2>/dev/null | sort
     fi
@@ -362,7 +362,7 @@ get_sites_in_store() {
 #   Returns: 0 on success, 1 on failure
 delete_site() {
     local site="$1"
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     if [[ -z "$site" ]]; then
         echo "Error: site name required" >&2
         return 1

@@ -4,10 +4,25 @@
 # edit_passwords_menu.sh — Rofi-based password editing dialogs
 # Provides: edit_passwords_menu, edit_user_password
 
+# Initialize SCRIPT_DIR if not already set
+SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
 # Source utility functions if not already sourced
-source util_pass.sh
-source util_notify.sh
-source menu_update_entry.sh
+if ! declare -F pass_update >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
+        source "$SCRIPT_DIR/util_pass.sh"
+    fi
+fi
+if ! declare -F notify_error >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
+        source "$SCRIPT_DIR/util_notify.sh"
+    fi
+fi
+if ! declare -F input_password_update >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_update_entry.sh" ]]; then
+        source "$SCRIPT_DIR/menu_update_entry.sh"
+    fi
+fi
 if ! declare -F nav_push >/dev/null; then
     if [[ -f "util_navigation.sh" ]]; then
         source "util_navigation.sh"

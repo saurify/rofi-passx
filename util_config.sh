@@ -28,41 +28,44 @@ fi
 #   Returns: 0 on success
 #   Example: load_config
 load_config() {
-    if [[ -f "$CONFIG_FILE" ]]; then
-        while read -r line; do
-            # Skip comments and empty lines
-            [[ "$line" =~ ^#.*$ ]] && continue
-            [[ -z "$line" ]] && continue
-            
-            # Parse key=value
-            if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
-                local key="${BASH_REMATCH[1]}"
-                local value="${BASH_REMATCH[2]}"
-                
-                # Trim whitespace
-                key="${key#"${key%%[![:space:]]*}"}"
-                key="${key%"${key##*[![:space:]]}"}"
-                value="${value#"${value%%[![:space:]]*}"}"
-                value="${value%"${value##*[![:space:]]}"}"
-                
-                # Remove quotes
-                value="${value%\"}"
-                value="${value#\"}"
-                value="${value%\'}"
-                value="${value#\'}"
-                
-                # Export allowed variables
-                case "$key" in
-                    PASSWORD_STORE_DIR)
-                        export PASSWORD_STORE_DIR="$value"
-                        ;;
-                    PASSWORD_IMPORT_DIR)
-                        export PASSWORD_IMPORT_DIR="$value"
-                        ;;
-                esac
-            fi
-        done < "$CONFIG_FILE"
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        return 0
     fi
+    
+    # Use process substitution to avoid subshell issues
+    while read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$line" ]] && continue
+        
+        # Parse key=value
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            local key="${BASH_REMATCH[1]}"
+            local value="${BASH_REMATCH[2]}"
+            
+            # Trim whitespace
+            key="${key#"${key%%[![:space:]]*}"}"
+            key="${key%"${key##*[![:space:]]}"}"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            
+            # Remove quotes
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            # Export allowed variables
+            case "$key" in
+                PASSWORD_STORE_DIR)
+                    export PASSWORD_STORE_DIR="$value"
+                    ;;
+                PASSWORD_IMPORT_DIR)
+                    export PASSWORD_IMPORT_DIR="$value"
+                    ;;
+            esac
+        fi
+    done < <(cat "$CONFIG_FILE")
 }
 
 # config_create()

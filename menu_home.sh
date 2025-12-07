@@ -45,7 +45,7 @@ fi
 #   Args: none
 #   Returns: 0 on success, 1 on failure
 home_menu() {
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     local sites site_items site_sel
     sites=$(get_sites_in_store)
     site_items=()

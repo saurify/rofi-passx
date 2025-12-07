@@ -93,6 +93,10 @@ startup_check_config() {
     return 1
   fi
   
+  # Set default PASSWORD_STORE_DIR if not already set
+  # This ensures we have a fallback even if config file doesn't define it
+  export PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  
   # Load configuration variables
   load_config
   
@@ -105,7 +109,7 @@ startup_check_config() {
 #   Example: startup_check_password_store
 #   Output: Returns success if .password-store directory exists
 startup_check_password_store() {
-  local store_dir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  local store_dir="${PASSWORD_STORE_DIR}"
   
   if [[ ! -d "$store_dir" ]]; then
     return 1

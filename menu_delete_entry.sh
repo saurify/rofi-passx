@@ -1,15 +1,30 @@
 #!/usr/bin/env bash
 # menu_delete_entry.sh — delete entry menu logic
 # Uses: ~/.config/rofi-passx/config for configuration
-# Provides: delete_entry_menu, delete_site_menu, delete_individual_entry
+# Provides: delete_individual_entry, delete_site_menu, delete_all_sites_menu
+
+# Initialize SCRIPT_DIR if not already set
+SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
-source util_pass.sh
-source util_notify.sh
-source menu_confirm_action.sh
+if ! declare -F pass_remove >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
+        source "$SCRIPT_DIR/util_pass.sh"
+    fi
+fi
+if ! declare -F notify_delete >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
+        source "$SCRIPT_DIR/util_notify.sh"
+    fi
+fi
+if ! declare -F confirm >/dev/null; then # Changed from confirm_action to confirm as per original usage
+    if [[ -f "$SCRIPT_DIR/menu_confirm_action.sh" ]]; then
+        source "$SCRIPT_DIR/menu_confirm_action.sh"
+    fi
+fi
 if ! declare -F nav_push >/dev/null; then
-    if [[ -f "util_navigation.sh" ]]; then
-        source "util_navigation.sh"
+    if [[ -f "$SCRIPT_DIR/util_navigation.sh" ]]; then
+        source "$SCRIPT_DIR/util_navigation.sh"
     fi
 fi
 
