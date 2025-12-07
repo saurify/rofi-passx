@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
+# menu_update_entry.sh — update entry menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 # update_entry_menu.sh — Rofi-based input dialogs for updating password entries
 # Provides: input_password_update
 
+# Initialize SCRIPT_DIR if not already set
+SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
 # Source utility functions if not already sourced
-source util_pass.sh
-source util_notify.sh
+if ! declare -F pass_update >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
+        source "$SCRIPT_DIR/util_pass.sh"
+    fi
+fi
+if ! declare -F notify_error >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
+        source "$SCRIPT_DIR/util_notify.sh"
+    fi
+fi
 
 # input_password_update()
 #   Shows input dialogs to update an existing password entry.

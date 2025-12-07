@@ -1,11 +1,92 @@
 #!/usr/bin/env bash
 # add_entry_menu.sh — Rofi-based input dialogs for adding new password entries
-# Provides: input_password_create, input_password_generate, input_gpg_create
+# Provides: input_add_entry, input_password_create, input_password_generate, input_gpg_create
+
+# Initialize SCRIPT_DIR if not already set
+SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
-source util_pass.sh
-source util_gpg.sh
-source util_notify.sh
+if ! declare -F pass_create > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
+        source "$SCRIPT_DIR/util_pass.sh"
+    fi
+fi
+if ! declare -F gpg_key_generate > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_gpg.sh" ]]; then
+        source "$SCRIPT_DIR/util_gpg.sh"
+    fi
+fi
+if ! declare -F notify_error > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
+        source "$SCRIPT_DIR/util_notify.sh"
+    fi
+fi
+if ! declare -F confirm > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_confirm_action.sh" ]]; then
+        source "$SCRIPT_DIR/menu_confirm_action.sh"
+    fi
+fi
+
+# input_add_entry()
+#   Merged add entry flow: asks for domain, username, then prompts to generate or manually create password.
+#   Args: $1 = domain (optional), $2 = username (optional)
+#   Returns: 0 on success, 1 on failure
+#   Example: input_add_entry
+#   Example: input_add_entry "github.com"
+#   Example: input_add_entry "github.com" "myuser"
+#   Output: Creates or generates password entry based on user choice
+input_add_entry() {
+    local domain="$1" username="$2"
+    
+    # Get domain if not provided
+    if [[ -z "$domain" ]]; then
+        domain=$(rofi -dmenu -p "Domain (e.g., github.com):" -mesg "Enter the website domain")
+        [[ -z "$domain" ]] && return 1
+    fi
+    
+    # Get username if not provided (only if domain exists)
+    if [[ -z "$username" ]]; then
+        username=$(rofi -dmenu -p "Username:" -mesg "Enter the username for $domain")
+        [[ -z "$username" ]] && return 1
+    fi
+    
+    # Ask if user wants to generate password
+    if confirm "Generate a secure password automatically?"; then
+        # User wants to generate
+        local length
+        length=$(rofi -dmenu -p "Password Length:" -mesg "Enter password length (default: 20)")
+        if [[ -z "$length" ]]; then
+            length=20
+        elif ! [[ "$length" =~ ^[0-9]+$ ]]; then
+            length=20
+        fi
+        
+        # Generate password
+        local entry="web/${domain}/${username}"
+        if pass_generate "$entry" "$length"; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        # User wants to manually enter password
+        local password
+        local pass_flags=()
+        if [[ "${HIDE_PASSWORD:-1}" -eq 1 ]]; then
+            pass_flags=(-password)
+        fi
+        
+        password=$(rofi -dmenu "${pass_flags[@]}" -p "Password:" -mesg "Enter the password for $username@$domain")
+        [[ -z "$password" ]] && return 1
+        
+        # Create entry with manual password
+        if pass_create "$domain" "$username" "$password"; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+}
 
 # input_password_create()
 #   Shows input dialogs to create a new password entry.

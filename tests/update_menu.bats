@@ -39,10 +39,7 @@ EOF
     chmod +x "$MOCK_DIR/rofi"
 
     # Mock utility functions
-    pass_update() {
-        echo "MOCK: pass_update called with: $1 $2 $3"
-        return 0
-    }
+
     
     # Mock pass ls command
     cat > "$MOCK_DIR/pass" <<'EOF'
@@ -68,6 +65,12 @@ EOF
 
     # Source the update menu functions last (following coding guidelines priority)
     source "$UPDATE_MENU_SCRIPT"
+
+    # Mock utility functions (re-mock after sourcing to override util_pass.sh)
+    pass_update() {
+        echo "MOCK: pass_update called with: $1 $2 $3"
+        return 0
+    }
 }
 
 @test "[update_menu] input_password_update calls pass_update with correct arguments" {

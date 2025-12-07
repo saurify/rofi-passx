@@ -1,7 +1,7 @@
-# config.sh — handles user config (~/.config/rofi-passx/config.sh)
+# config.sh — handles user config (~/.config/rofi-passx/config)
 # Provides: config_create, config_regenerate, config_open
 
-CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config.sh}"
+CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/rofi-passx/config}"
 CONFIG_DIR="${CONFIG_DIR:-$(dirname "$CONFIG_FILE")}"
 
 # Fallback notification function if notify.sh isn't sourced
@@ -22,6 +22,51 @@ if ! declare -F notify_error >/dev/null; then
         echo "ERROR: $1"
     }
 fi
+
+# load_config()
+#   Reads configuration file and exports allowed variables.
+#   Returns: 0 on success
+#   Example: load_config
+load_config() {
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        return 0
+    fi
+    
+    # Use process substitution to avoid subshell issues
+    while read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$line" ]] && continue
+        
+        # Parse key=value
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            local key="${BASH_REMATCH[1]}"
+            local value="${BASH_REMATCH[2]}"
+            
+            # Trim whitespace
+            key="${key#"${key%%[![:space:]]*}"}"
+            key="${key%"${key##*[![:space:]]}"}"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            
+            # Remove quotes
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            # Export allowed variables
+            case "$key" in
+                PASSWORD_STORE_DIR)
+                    export PASSWORD_STORE_DIR="$value"
+                    ;;
+                PASSWORD_IMPORT_DIR)
+                    export PASSWORD_IMPORT_DIR="$value"
+                    ;;
+            esac
+        fi
+    done < <(cat "$CONFIG_FILE")
+}
 
 # config_create()
 #   Creates default config file if it doesn't exist.
@@ -51,6 +96,9 @@ config_create() {
 #
 # The directory where your password store is located.
 # PASSWORD_STORE_DIR="$HOME/.password-store"
+#
+# The directory to import CSV files from.
+# PASSWORD_IMPORT_DIR="$HOME/Downloads"
 
 # --- Notifications ---
 #
@@ -86,22 +134,6 @@ EOF
   fi
 }
 
-# config_regenerate()
-#   Overwrites config file with fresh defaults after user confirmation.
-#   Returns: 0 on success, 1 on failure
-#   Example: echo "y" | config_regenerate
-#   Output: Resets config to defaults if user confirms
-config_regenerate() {
-  read -p "This will overwrite your existing config. Are you sure? [y/N] " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm -f "$CONFIG_FILE"
-    config_create
-    notify_update "Configuration file has been reset."
-  else
-    notify_error "Configuration reset aborted."
-  fi
-}
 
 # config_open()
 #   Opens config file in user's preferred editor.

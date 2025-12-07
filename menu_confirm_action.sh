@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# confirm_action_menu.sh — Rofi-based confirmation dialog utility
+# menu_confirm_action.sh — confirm action menu logic
+# Uses: ~/.config/rofi-passx/config for configuration
 
 # confirm()
 #   Shows confirmation dialog using Rofi.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# util_startup.sh — application startup and initialization utilities
 # startup.sh — application startup and initialization utilities
 
 # Source all utilities relative to this script's location
@@ -11,48 +12,6 @@ source util_pass.sh
 # shellcheck source=/dev/null
 source util_clipboard.sh
 
-# startup_check()
-#   Verifies dependencies and performs first-run setup if needed.
-#   Returns: 0 if environment OK, 1 on fatal error
-#   Example: startup_check
-#   Output: Checks deps, GPG keys, and initializes password store
-startup_check() {
-  # 1. Check for critical command dependencies
-  local missing_deps=()
-  for cmd in rofi pass gpg; do
-    if ! command -v "$cmd" &>/dev/null; then
-      missing_deps+=("$cmd")
-    fi
-  done
-
-  if ! clip_check &>/dev/null; then
-    missing_deps+=("a clipboard tool (xclip or wl-copy)")
-  fi
-
-  if (( ${#missing_deps[@]} > 0 )); then
-    rofi -e "Fatal Error: Missing required commands: ${missing_deps[*]}. Please install them."
-    return 1
-  fi
-
-  # 2. Check for an existing GPG key
-  local gpg_keys
-  gpg_keys=$(gpg_list_keys)
-  if [[ -z "$gpg_keys" ]]; then
-    rofi -e "No GPG key found. Please create one using 'gpg --full-generate-key' or a GUI tool like Seahorse/Kleopatra."
-    return 1
-  fi
-
-  # 3. Check if the password store is initialized
-  if [[ ! -f "${PASSWORD_STORE_DIR}/.gpg-id" ]]; then
-    notify_init "Password store not found. Initializing now..."
-    local first_key
-    first_key=$(echo "$gpg_keys" | head -n 1)
-    pass_init "$first_key"
-    notify_gpg_create "Password store initialized with GPG key: $first_key"
-  fi
-
-  return 0
-}
 
 # startup_check_dependencies()
 #   Checks if required dependencies are installed.
@@ -67,6 +26,13 @@ startup_check_dependencies() {
       missing+=("$dep")
     fi
   done
+  
+  # Check clipboard tools and show help if missing
+  if ! clip_check &>/dev/null; then
+    # Show installation help via rofi
+    clipboard_install_help | rofi -dmenu -p "Clipboard Tool Missing" -mesg "Please install a clipboard tool to continue"
+    missing+=("clipboard tool")
+  fi
   
   if [[ ${#missing[@]} -gt 0 ]]; then
     echo "Missing dependencies: ${missing[*]}" >&2
@@ -92,6 +58,13 @@ startup_check_config() {
     return 1
   fi
   
+  # Set default PASSWORD_STORE_DIR if not already set
+  # This ensures we have a fallback even if config file doesn't define it
+  export PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  
+  # Load configuration variables
+  load_config
+  
   return 0
 }
 
@@ -101,7 +74,7 @@ startup_check_config() {
 #   Example: startup_check_password_store
 #   Output: Returns success if .password-store directory exists
 startup_check_password_store() {
-  local store_dir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  local store_dir="${PASSWORD_STORE_DIR}"
   
   if [[ ! -d "$store_dir" ]]; then
     return 1
@@ -114,11 +87,48 @@ startup_check_password_store() {
   return 0
 }
 
+# startup_check_gpg_keys()
+#   Checks for GPG keys and offers to create one if none exist.
+#   Returns: 0 if GPG keys exist or user declines, 1 on failure
+#   Example: startup_check_gpg_keys
+#   Output: Offers to create GPG key if none found
+startup_check_gpg_keys() {
+  local gpg_keys
+  gpg_keys=$(gpg_list_keys)
+  
+  if [[ -z "$gpg_keys" ]]; then
+    # No GPG keys found - offer to create one
+    local options=("Create GPG Key" "Exit")
+    local choice
+    choice=$(printf '%s\n' "${options[@]}" | rofi -dmenu -p "No GPG Key Found" -mesg "No GPG keys found. Would you like to create one?" -selected-row 0)
+    
+    if [[ "$choice" == "Create GPG Key" ]]; then
+      # Source the add entry menu for input_gpg_create
+      if ! declare -F input_gpg_create > /dev/null; then
+        source menu_add_entry.sh
+      fi
+      
+      if input_gpg_create; then
+        notify_gpg_create "GPG key created successfully"
+        return 0
+      else
+        rofi -e "Failed to create GPG key. Please create one manually using 'gpg --full-generate-key'"
+        return 1
+      fi
+    else
+      rofi -e "Cannot proceed without a GPG key. Please create one using 'gpg --full-generate-key'"
+      return 1
+    fi
+  fi
+  
+  return 0
+}
+
 # startup_initialize()
 #   Performs full startup initialization.
 #   Returns: 0 on success, 1 on failure
 #   Example: startup_initialize
-#   Output: Checks deps, config, and password store
+#   Output: Checks deps, config, password store, and GPG keys
 startup_initialize() {
   if ! startup_check_dependencies; then
     return 1
@@ -128,9 +138,23 @@ startup_initialize() {
     return 1
   fi
   
-  if ! startup_check_password_store; then
-    echo "Password store not initialized. Run setup first." >&2
+  # Check for GPG keys and offer to create if missing
+  if ! startup_check_gpg_keys; then
     return 1
+  fi
+  
+  # Initialize password store if needed
+  if ! startup_check_password_store; then
+    notify_init "Password store not found. Initializing now..."
+    local first_key
+    first_key=$(gpg_get_first_key)
+    if [[ -n "$first_key" ]]; then
+      pass_init "$first_key"
+      notify_gpg_create "Password store initialized with GPG key: $first_key"
+    else
+      echo "Password store not initialized. No GPG key available." >&2
+      return 1
+    fi
   fi
   
   return 0

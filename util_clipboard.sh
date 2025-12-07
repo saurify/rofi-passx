@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # clipboard.sh — cross-platform clipboard operations
+# Uses: ~/.config/rofi-passx/config for clipboard tool preferences
 
 # Source notification utilities
 source util_notify.sh
@@ -45,20 +46,6 @@ clipboard_copy() {
   return 1
 }
 
-# clipboard_clear()
-#   Clears clipboard contents after specified delay.
-#   Args: $1 = delay in seconds (default: 30)
-#   Returns: 0 on success
-#   Example: clipboard_clear 60
-#   Output: Clears clipboard after 60 seconds
-clipboard_clear() {
-  local delay="${1:-30}"
-  (
-    sleep "$delay"
-    clipboard_copy ""
-  ) &
-}
-
 # clipboard_install_help()
 #   Shows help message for installing clipboard tools.
 #   Returns: 0 on success
@@ -100,21 +87,3 @@ clip_copy() {
     return 1
   fi
 }
-
-# clip_paste()
-#   Prints clipboard contents.
-#   Returns: 0 on success, 2 if no tool available
-#   Example: clip_paste
-#   Output: Prints clipboard contents to stdout
-clip_paste() {
-  if command -v xclip &>/dev/null; then
-    xclip -selection clipboard -o
-  elif command -v xsel &>/dev/null; then
-    xsel --clipboard --output
-  elif command -v wl-paste &>/dev/null; then
-    wl-paste
-  else
-    notify_error "No clipboard tool available"
-    return 2
-  fi
-} 

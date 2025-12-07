@@ -68,9 +68,14 @@ teardown() {
 
 @test "[pass] pass_switch_key successfully switches GPG key" {
     # Mock pass_init to prevent calling the real 'pass' command
-    pass_init() {
-        echo "$1" > "$PASSWORD_STORE_DIR/.gpg-id"
+    # Mock pass command to prevent calling the real 'pass' command and ensure .gpg-id update
+    pass() {
+        if [[ "$1" == "init" ]]; then
+            echo "$2" > "$PASSWORD_STORE_DIR/.gpg-id"
+            return 0
+        fi
     }
+    export -f pass
 
     # Initialize store with the first key
     pass_init "$GPG_KEY_1"

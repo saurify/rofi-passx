@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# util_navigation.sh — Stack-based navigation utility for rofi-passx (file-based persistence)
+# util_navigation.sh — navigation utilities
+# Uses: ~/.config/rofi-passx/config for configuration
+
+# Stack-based navigation utility for rofi-passx (file-based persistence)
 
 # Use environment or default values
 NAV_STACK_DELIM="${NAV_STACK_DELIM:-|}"

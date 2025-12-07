@@ -50,3 +50,6 @@ fi
 
 echo "==> [rofi-passx-setup] Setup complete."
 # Do not exit or return here; let the parent script continue 
+
+# rofi-passx-setup — setup script
+# Uses: ~/.config/rofi-passx/config 

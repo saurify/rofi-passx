@@ -29,8 +29,15 @@ echo "[MOCK notify-send]: $@"
 EOF
     chmod +x "$mock_dir/notify-send"
     
+    # Mock notify_generate to ensure consistent output
+    notify_generate() {
+        echo "NOTIFY: $1"
+    }
+    export -f notify_generate
+    
     # Source the script under test
     source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'
+    export -f config_create config_regenerate config_open
 }
 
 teardown() {
@@ -46,20 +53,20 @@ teardown() {
 @test "[config] config_create creates a new file when it doesn't exist" {
     run config_create
     assert_success
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     assert_output --partial "NOTIFY: Default configuration file created"
 }
 
 @test "[config] config_create does not overwrite an existing file" {
     mkdir -p "$HOME/.config/rofi-passx"
-    echo "USER_SETTING=true" > "$HOME/.config/rofi-passx/config.sh"
+    echo "USER_SETTING=true" > "$HOME/.config/rofi-passx/config"
     
     run config_create
     assert_success
     assert_output ""
     
     local content
-    content=$(cat "$HOME/.config/rofi-passx/config.sh")
+    content=$(cat "$HOME/.config/rofi-passx/config")
     assert_equal "$content" "USER_SETTING=true"
 }
 
@@ -69,7 +76,7 @@ teardown() {
     run config_create
     assert_success
     assert [ -d "$HOME/.config/rofi-passx" ]
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
 }
 
 @test "[config] config_create handles custom CONFIG_FILE location" {
@@ -112,7 +119,7 @@ teardown() {
 
 @test "[config] config_create handles CONFIG_FILE as symlink" {
     local target_file="$HOME/target_config.txt"
-    local symlink_file="$HOME/.config/rofi-passx/config.sh"
+    local symlink_file="$HOME/.config/rofi-passx/config"
     
     # Create target and symlink
     mkdir -p "$HOME/.config/rofi-passx"
@@ -125,7 +132,7 @@ teardown() {
 }
 
 @test "[config] config_create handles broken symlink" {
-    local symlink_file="$HOME/.config/rofi-passx/config.sh"
+    local symlink_file="$HOME/.config/rofi-passx/config"
     
     # Create broken symlink
     mkdir -p "$HOME/.config/rofi-passx"
@@ -141,7 +148,7 @@ teardown() {
 
 @test "[config] config_create works with fallback notification functions" {
     # Create a temporary config file with fallback functions
-    local temp_config="$BATS_TMPDIR/temp_config.sh"
+    local temp_config="$BATS_TMPDIR/temp_config"
     cat > "$temp_config" <<'EOF'
 # Fallback notification functions
 notify_generate() {
@@ -163,7 +170,7 @@ EOF
     # Run config_create in a new shell with fallback functions
     run bash -c "source '$temp_config'; config_create"
     assert_success
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     assert_output --partial "Config: Default configuration file created"
 }
 
@@ -183,7 +190,7 @@ EOF
 @test "[config] config_regenerate overwrites existing file when user confirms" {
     # Create existing config
     mkdir -p "$HOME/.config/rofi-passx"
-    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
+    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config"
     
     # Mock user input to confirm (y) - source functions in subshell
     run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
@@ -191,7 +198,7 @@ EOF
     
     # Check that file was regenerated
     local content
-    content=$(cat "$HOME/.config/rofi-passx/config.sh")
+    content=$(cat "$HOME/.config/rofi-passx/config")
     assert_output --partial "Configuration file has been reset"
     refute_output --partial "OLD_CONFIG=true"
 }
@@ -199,7 +206,7 @@ EOF
 @test "[config] config_regenerate aborts when user cancels" {
     # Create existing config
     mkdir -p "$HOME/.config/rofi-passx"
-    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
+    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config"
     
     # Mock user input to cancel (n) - source functions in subshell
     run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'n' | config_regenerate"
@@ -207,7 +214,7 @@ EOF
     
     # Check that file was not changed
     local content
-    content=$(cat "$HOME/.config/rofi-passx/config.sh")
+    content=$(cat "$HOME/.config/rofi-passx/config")
     assert_equal "$content" "OLD_CONFIG=true"
     assert_output --partial "Configuration reset aborted"
 }
@@ -215,7 +222,7 @@ EOF
 @test "[config] config_regenerate aborts on empty input" {
     # Create existing config
     mkdir -p "$HOME/.config/rofi-passx"
-    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
+    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config"
     
     # Mock empty user input - source functions in subshell
     run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo '' | config_regenerate"
@@ -223,21 +230,21 @@ EOF
     
     # Check that file was not changed
     local content
-    content=$(cat "$HOME/.config/rofi-passx/config.sh")
+    content=$(cat "$HOME/.config/rofi-passx/config")
     assert_equal "$content" "OLD_CONFIG=true"
     assert_output --partial "Configuration reset aborted"
 }
 
 @test "[config] config_regenerate creates file if it doesn't exist" {
     # Ensure no config exists
-    rm -f "$HOME/.config/rofi-passx/config.sh"
+    rm -f "$HOME/.config/rofi-passx/config"
     
     # Mock user input to confirm (y) - source functions in subshell
     run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
     assert_success
     
     # Check that file was created
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     assert_output --partial "Configuration file has been reset"
 }
 
@@ -270,7 +277,7 @@ EOF
     run config_open
     assert_success
     assert_output --partial "Opening"
-    assert_output --partial ".config/rofi-passx/config.sh"
+    assert_output --partial ".config/rofi-passx/config"
 }
 
 @test "[config] config_open uses \$EDITOR variable if set" {
@@ -284,7 +291,7 @@ EOF
 
     run config_open
     assert_success
-    assert_output "Using custom editor for $HOME/.config/rofi-passx/config.sh"
+    assert_output "Using custom editor for $HOME/.config/rofi-passx/config"
 }
 
 @test "[config] config_open uses \$VISUAL variable if set" {
@@ -298,7 +305,7 @@ EOF
 
     run config_open
     assert_success
-    assert_output "Using visual editor for $HOME/.config/rofi-passx/config.sh"
+    assert_output "Using visual editor for $HOME/.config/rofi-passx/config"
 }
 
 @test "[config] config_open prefers \$VISUAL over \$EDITOR" {
@@ -320,7 +327,7 @@ EOF
 
     run config_open
     assert_success
-    assert_output "Using visual editor for $HOME/.config/rofi-passx/config.sh"
+    assert_output "Using visual editor for $HOME/.config/rofi-passx/config"
 }
 
 @test "[config] config_open creates the file if it does not exist" {
@@ -333,13 +340,13 @@ EOF
     export EDITOR="$BATS_TMPDIR/mocks/my-editor"
 
     # Ensure the file does not exist initially
-    refute [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    refute [ -f "$HOME/.config/rofi-passx/config" ]
 
     run config_open
     
     assert_success
     # Now the file should exist
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     assert_output --partial "Opening"
 }
 
@@ -457,24 +464,24 @@ EOF
     chmod +x "$BATS_TMPDIR/mocks/nano"
     
     # Remove any existing config
-    rm -f "$HOME/.config/rofi-passx/config.sh"
+    rm -f "$HOME/.config/rofi-passx/config"
     
     run config_open
     assert_success
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     assert_output --partial "Opening"
 }
 
 @test "[config] config_regenerate and config_create work together" {
     # Create initial config
     mkdir -p "$HOME/.config/rofi-passx"
-    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config.sh"
+    echo "OLD_CONFIG=true" > "$HOME/.config/rofi-passx/config"
     
     # Mock user input to confirm regeneration - source functions in subshell
     run bash -c "source '/home/saurify/project/rofi-script-project/rofi-passx/util_config.sh'; echo 'y' | config_regenerate"
     assert_success
     
     # Verify config_create was called and file was regenerated
-    assert [ -f "$HOME/.config/rofi-passx/config.sh" ]
+    assert [ -f "$HOME/.config/rofi-passx/config" ]
     refute_output --partial "OLD_CONFIG=true"
 } 

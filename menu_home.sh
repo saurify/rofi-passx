@@ -24,7 +24,7 @@ if ! declare -F confirm >/dev/null; then
         source "$SCRIPT_DIR/menu_confirm_action.sh"
     fi
 fi
-if ! declare -F delete_all_sites_menu >/dev/null; then
+if ! declare -F delete_site_menu >/dev/null; then
     if [[ -f "$SCRIPT_DIR/menu_delete_entry.sh" ]]; then
         source "$SCRIPT_DIR/menu_delete_entry.sh"
     fi
@@ -34,24 +34,43 @@ if ! declare -F nav_push >/dev/null; then
         source "$SCRIPT_DIR/util_navigation.sh"
     fi
 fi
+if ! declare -F config_open >/dev/null; then
+    if [[ -f "$SCRIPT_DIR/util_config.sh" ]]; then
+        source "$SCRIPT_DIR/util_config.sh"
+    fi
+fi
+if ! declare -F input_add_entry > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_add_entry.sh" ]]; then
+        source "$SCRIPT_DIR/menu_add_entry.sh"
+    fi
+fi
+if ! declare -F settings_menu > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_settings.sh" ]]; then
+        source "$SCRIPT_DIR/menu_settings.sh"
+    fi
+fi
 
 # home_menu()
-#   Shows the main menu: lists all sites, import CSV, delete site, back
-#   Args: none
-#   Returns: 0 on success, 1 on failure
+#   Shows the main menu: lists all sites, import CSV, delete site, back.
+#   Args:
+#     None
+#   Returns:
+#     0 on success
+#     1 on failure
 home_menu() {
-    local store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+    local store="${PASSWORD_STORE_DIR}"
     local sites site_items site_sel
     sites=$(get_sites_in_store)
     site_items=()
     while read -r site; do
         [[ -n "$site" ]] && site_items+=("🌐 $site")
     done <<< "$sites"
-    site_items+=("➕ Import Passwords from CSV")
+    site_items+=("➕ Add New Entry")
+    site_items+=("📥 Import Passwords from CSV")
     site_items+=("🗑️ Delete Site Data")
-    site_items+=("↩ Back")
+    site_items+=("⚙️ Settings")
 
-    site_sel=$(printf "%s\n" "${site_items[@]}" | rofi -dmenu -markup-rows -mesg "Select a site or action" -p "Home Menu:")
+    site_sel=$(printf "%s\n" "${site_items[@]}" | rofi -dmenu -markup-rows -mesg "Select a site or action" -p "rofi-passx")
     [[ -z "$site_sel" ]] && return 1
 
     case "$site_sel" in
@@ -60,7 +79,11 @@ home_menu() {
             nav_push home_menu
             site_menu "$site"
             ;;
-        "➕ Import Passwords from CSV")
+        "➕ Add New Entry")
+            nav_push home_menu
+            input_add_entry
+            ;;
+        "📥 Import Passwords from CSV")
             nav_push home_menu
             import_passwords_menu
             ;;
@@ -68,16 +91,22 @@ home_menu() {
             nav_push home_menu
             delete_all_sites_menu
             ;;
-        "↩ Back")
-            rofi -dmenu
+        "⚙️ Settings")
+            nav_push home_menu
+            settings_menu
             ;;
     esac
 }
 
 # import_passwords_menu()
-#   Shows a menu to select a CSV file from ~/Downloads and imports it
+#   Shows a menu to select a CSV file from configured import dir (default: ~/Downloads) and imports it.
+#   Args:
+#     None
+#   Returns:
+#     0 on success
+#     1 on failure
 import_passwords_menu() {
-    local csv_dir="$HOME/Downloads"
+    local csv_dir="${PASSWORD_IMPORT_DIR:-$HOME/Downloads}"
     local csv_files csv_items csv_sel
     csv_files=$(ls -1 "$csv_dir"/*.csv 2>/dev/null)
     csv_items=()
