@@ -97,7 +97,7 @@ site_menu() {
             ;;
         "➕ Add New User")
             nav_push site_menu "$site"
-            if input_password_create "$site"; then
+            if input_add_entry "$site"; then
                 notify_generate "New user added to $site"
                 return 0
             else

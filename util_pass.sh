@@ -38,18 +38,6 @@ pass_init() {
   fi
 }
 
-# pass_list()
-#   Lists all password entries (one per line, relative path, no trailing slash).
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_list
-#   Output: Prints all password entries to stdout, one per line
-pass_list() {
-  if ! pass ls 2>/dev/null | sed '1d; s/\s*├── //; s/\s*└── //; s/\s*│   //g; s/\s*    //g; s/\/$//' | grep -v '^$'; then
-    echo "Error: could not list entries" >&2
-    return 1
-  fi
-}
-
 # pass_show()
 #   Shows password entry contents (first line is password, rest is metadata).
 #   Args: $1 = entry name
@@ -121,17 +109,6 @@ pass_rm() {
   fi
   pass rm "$entry" 2>/dev/null || { echo "Error: could not remove entry $entry" >&2; return 1; }
   notify_delete "Removed password entry: $entry"
-}
-
-# pass_edit()
-#   Edits password entry.
-#   Args: $1 = entry name
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_edit "github.com"
-#   Output: Opens entry in editor
-pass_edit() {
-  local entry="$1"
-  pass edit "$entry"
 }
 
 # pass_create()

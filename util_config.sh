@@ -134,22 +134,6 @@ EOF
   fi
 }
 
-# config_regenerate()
-#   Overwrites config file with fresh defaults after user confirmation.
-#   Returns: 0 on success, 1 on failure
-#   Example: echo "y" | config_regenerate
-#   Output: Resets config to defaults if user confirms
-config_regenerate() {
-  read -p "This will overwrite your existing config. Are you sure? [y/N] " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm -f "$CONFIG_FILE"
-    config_create
-    notify_update "Configuration file has been reset."
-  else
-    notify_error "Configuration reset aborted."
-  fi
-}
 
 # config_open()
 #   Opens config file in user's preferred editor.

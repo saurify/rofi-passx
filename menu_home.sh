@@ -39,6 +39,11 @@ if ! declare -F config_open >/dev/null; then
         source "$SCRIPT_DIR/util_config.sh"
     fi
 fi
+if ! declare -F input_add_entry > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_add_entry.sh" ]]; then
+        source "$SCRIPT_DIR/menu_add_entry.sh"
+    fi
+fi
 
 # home_menu()
 #   Shows the main menu: lists all sites, import CSV, delete site, back
@@ -52,7 +57,8 @@ home_menu() {
     while read -r site; do
         [[ -n "$site" ]] && site_items+=("🌐 $site")
     done <<< "$sites"
-    site_items+=("➕ Import Passwords from CSV")
+    site_items+=("➕ Add New Entry")
+    site_items+=("📥 Import Passwords from CSV")
     site_items+=("🗑️ Delete Site Data")
     site_items+=("⚙️ Settings")
 
@@ -65,7 +71,11 @@ home_menu() {
             nav_push home_menu
             site_menu "$site"
             ;;
-        "➕ Import Passwords from CSV")
+        "➕ Add New Entry")
+            nav_push home_menu
+            input_add_entry
+            ;;
+        "📥 Import Passwords from CSV")
             nav_push home_menu
             import_passwords_menu
             ;;
