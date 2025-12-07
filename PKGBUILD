@@ -14,10 +14,5 @@ sha256sums=('SKIP')
 
 package() {
     cd "$srcdir/rofi-passx"
-    install -Dm755 rofi-passx "$pkgdir/usr/bin/rofi-passx"
-    install -Dm755 rofi-passx-setup "$pkgdir/usr/bin/rofi-passx-setup"
-    for f in util_*.sh menu_*.sh; do
-        install -Dm644 "$f" "$pkgdir/usr/lib/rofi-passx/$f"
-    done
-    install -Dm644 rofi-passx.desktop "$pkgdir/usr/share/applications/rofi-passx.desktop"
+    make install DESTDIR="$pkgdir" PREFIX=/usr
 } 

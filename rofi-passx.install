@@ -1,7 +1,7 @@
 post_install() {
     mkdir -p /etc/rofi-passx
-    if command -v rofi-passx-onboard &>/dev/null; then
-        sudo -u "$SUDO_USER" rofi-passx-onboard || true
+    if command -v rofi-passx-setup &>/dev/null; then
+        sudo -u "$SUDO_USER" rofi-passx-setup || true
     fi
 }
 
