@@ -45,7 +45,7 @@ fi
 gpg_settings_menu() {
     local current_key
     current_key=$(gpg_get_current_key)
-    # Debug: remove any whitespace
+    # Remove any whitespace from the key ID
     current_key="$(echo "$current_key" | tr -d '[:space:]')"
     
     local keys_data
@@ -128,8 +128,12 @@ gpg_settings_menu() {
 
 # switch_gpg_key_ui()
 #   UI for switching GPG keys with warnings and confirmation.
-#   Args: $1 = new GPG key ID, $2 = UID display string
-#   Returns: 0 on success, 1 on failure
+#   Args:
+#     $1 - new GPG key ID
+#     $2 - UID display string
+#   Returns:
+#     0 on success
+#     1 on failure
 switch_gpg_key_ui() {
     local new_key="$1"
     local new_uid="$2"
@@ -163,7 +167,9 @@ All passwords have been re-encrypted"
 
 # delete_gpg_key_ui()
 #   UI for deleting GPG keys with safeguards.
-#   Returns: 0 on success, 1 on failure
+#   Returns:
+#     0 on success
+#     1 on failure
 delete_gpg_key_ui() {
     local current_key
     current_key=$(gpg_get_current_key)

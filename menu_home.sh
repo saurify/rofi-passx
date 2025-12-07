@@ -51,9 +51,12 @@ if ! declare -F settings_menu > /dev/null; then
 fi
 
 # home_menu()
-#   Shows the main menu: lists all sites, import CSV, delete site, back
-#   Args: none
-#   Returns: 0 on success, 1 on failure
+#   Shows the main menu: lists all sites, import CSV, delete site, back.
+#   Args:
+#     None
+#   Returns:
+#     0 on success
+#     1 on failure
 home_menu() {
     local store="${PASSWORD_STORE_DIR}"
     local sites site_items site_sel
@@ -96,7 +99,12 @@ home_menu() {
 }
 
 # import_passwords_menu()
-#   Shows a menu to select a CSV file from configured import dir (default: ~/Downloads) and imports it
+#   Shows a menu to select a CSV file from configured import dir (default: ~/Downloads) and imports it.
+#   Args:
+#     None
+#   Returns:
+#     0 on success
+#     1 on failure
 import_passwords_menu() {
     local csv_dir="${PASSWORD_IMPORT_DIR:-$HOME/Downloads}"
     local csv_files csv_items csv_sel

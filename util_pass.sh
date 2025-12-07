@@ -10,19 +10,20 @@ source util_notify.sh
 
 # pass_check()
 #   Checks if pass command is available.
-#   Returns: 0 if pass found, 1 otherwise
-#   Example: pass_check
-#   Output: Returns success if pass command available
+#   Returns:
+#     0 if pass found
+#     1 otherwise
 pass_check() {
   command -v pass &>/dev/null
 }
 
 # pass_init()
 #   Initializes password store with GPG key.
-#   Args: $1 = GPG key ID (optional)
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_init ABC123DEF
-#   Output: Initializes password store and shows notification
+#   Args:
+#     $1 - GPG key ID (optional)
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_init() {
   local gpg_key="${1:-}"
   if [[ -z "$gpg_key" ]]; then
@@ -40,10 +41,13 @@ pass_init() {
 
 # pass_show()
 #   Shows password entry contents (first line is password, rest is metadata).
-#   Args: $1 = entry name
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_show "github.com"
-#   Output: Prints password entry contents to stdout (password on first line)
+#   Args:
+#     $1 - entry name
+#   Returns:
+#     0 on success
+#     1 on failure
+#   Output:
+#     Prints password entry contents to stdout (password on first line)
 pass_show() {
   local entry="$1"
   if [[ -z "$entry" ]]; then
@@ -58,10 +62,12 @@ pass_show() {
 
 # pass_insert()
 #   Inserts new password entry.
-#   Args: $1 = entry name, $2 = password (optional)
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_insert "new-site.com" "mypassword"
-#   Output: No output on success
+#   Args:
+#     $1 - entry name
+#     $2 - password (optional)
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_insert() {
   local entry="$1"
   local content="${2:-}"
@@ -80,10 +86,12 @@ EOF
 
 # pass_generate()
 #   Generates new password entry.
-#   Args: $1 = entry name, $2 = length (optional, default: 20)
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_generate "new-site.com" 32
-#   Output: No output on success
+#   Args:
+#     $1 - entry name
+#     $2 - length (optional, default: 20)
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_generate() {
   local entry="$1"
   local length="${2:-20}"
@@ -97,10 +105,11 @@ pass_generate() {
 
 # pass_rm()
 #   Removes password entry.
-#   Args: $1 = entry name
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_rm "old-site.com"
-#   Output: No output on success
+#   Args:
+#     $1 - entry name
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_rm() {
   local entry="$1"
   if [[ -z "$entry" ]]; then
@@ -113,10 +122,13 @@ pass_rm() {
 
 # pass_create()
 #   Creates a new password entry with domain/user structure.
-#   Args: $1 = domain, $2 = username, $3 = password
-#   Returns: 0 on success, 1 if entry exists or on failure
-#   Example: pass_create "github.com" "myuser" "mypassword"
-#   Output: No output on success
+#   Args:
+#     $1 - domain
+#     $2 - username
+#     $3 - password
+#   Returns:
+#     0 on success
+#     1 if entry exists or on failure
 pass_create() {
   local domain="$1" user="$2" password="$3"
   local entry="web/${domain}/${user}"
@@ -137,10 +149,13 @@ EOF
 
 # pass_update()
 #   Updates existing password entry.
-#   Args: $1 = domain, $2 = username, $3 = password
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_update "github.com" "myuser" "newpassword"
-#   Output: No output on success
+#   Args:
+#     $1 - domain
+#     $2 - username
+#     $3 - password
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_update() {
   local domain="$1" user="$2" password="$3"
   local entry="web/${domain}/${user}"
@@ -161,10 +176,12 @@ EOF
 
 # pass_remove()
 #   Removes password entry.
-#   Args: $1 = domain, $2 = username
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_remove "github.com" "myuser"
-#   Output: No output on success
+#   Args:
+#     $1 - domain
+#     $2 - username
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_remove() {
   local domain="$1" user="$2"
   local entry="web/${domain}/${user}"
@@ -177,10 +194,11 @@ pass_remove() {
 
 # pass_import_csv()
 #   Imports credentials from CSV file.
-#   Args: $1 = CSV file path
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_import_csv "passwords.csv"
-#   Output: Imports credentials from CSV with domain,username,password columns
+#   Args:
+#     $1 - CSV file path
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_import_csv() {
   local csv_file="$1"
   local line domain_col user_col pass_col
@@ -255,10 +273,11 @@ pass_import_csv() {
 
 # pass_switch_key()
 #   Switches GPG key for password store.
-#   Args: $1 = new GPG key ID
-#   Returns: 0 on success, 1 on failure
-#   Example: pass_switch_key ABC123DEF
-#   Output: Updates .gpg-id file with new key
+#   Args:
+#     $1 - new GPG key ID
+#   Returns:
+#     0 on success
+#     1 on failure
 pass_switch_key() {
   local new_gpg_id="$1"
 
@@ -285,10 +304,13 @@ Note: Existing passwords have NOT been re-encrypted."
 
 # get_users_for_site()
 #   Lists all users for a given site/domain in the password store.
-#   Args: $1 = domain (site)
-#   Output: Prints one username per line (no .gpg extension)
-#   Returns: 0 if users found, 1 if none or directory missing
-#   Example: get_users_for_site "github.com"
+#   Args:
+#     $1 - domain (site)
+#   Returns:
+#     0 if users found
+#     1 if none or directory missing
+#   Output:
+#     Prints one username per line (no .gpg extension)
 get_users_for_site() {
     local domain="$1"
     local store="${PASSWORD_STORE_DIR}"
@@ -300,17 +322,20 @@ get_users_for_site() {
     fi
 }
 
-# get_entry_path
+# get_entry_path()
 #   Returns the relative path to a pass entry for a given site and username.
-#   Args: $1 = site/domain, $2 = username
-#   Output: path (e.g., web/example.com/user)
+#   Args:
+#     $1 - site/domain
+#     $2 - username
+#   Output:
+#     path (e.g., web/example.com/user)
 get_entry_path() {
     local site="$1"
     local username="$2"
     echo "web/${site}/${username}"
 }
 
-# clear_password_vault
+# clear_password_vault()
 #   DEVELOPMENT ONLY! DANGEROUS!
 #   Deletes all entries in the password store (recursively removes $PASSWORD_STORE_DIR/web and all subfolders).
 #   DO NOT expose this in any UI or production code.
@@ -323,9 +348,10 @@ clear_password_vault() {
     echo "[INFO] Password vault cleared."
 }
 
-# get_sites_in_store
+# get_sites_in_store()
 #   Lists all sites (directories) in the password store under web/
-#   Output: one site per line
+#   Output:
+#     one site per line
 get_sites_in_store() {
     local store="${PASSWORD_STORE_DIR}"
     if [[ -d "$store/web" ]]; then
@@ -333,10 +359,13 @@ get_sites_in_store() {
     fi
 }
 
-# delete_site
+# delete_site()
 #   Deletes all entries for a given site (removes the site directory)
-#   Args: $1 = site/domain
-#   Returns: 0 on success, 1 on failure
+#   Args:
+#     $1 - site/domain
+#   Returns:
+#     0 on success
+#     1 on failure
 delete_site() {
     local site="$1"
     local store="${PASSWORD_STORE_DIR}"
