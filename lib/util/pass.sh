@@ -31,8 +31,12 @@ pass_init() {
   fi
   
   if [[ -n "$gpg_key" ]]; then
-    pass init "$gpg_key"
-    notify_init "Password store initialized with key $gpg_key"
+    if pass init "$gpg_key"; then
+      notify_init "Password store initialized with key $gpg_key"
+    else
+      notify_error "Failed to initialize password store with key $gpg_key"
+      return 1
+    fi
   else
     notify_error "No GPG key available for password store initialization"
     return 1
@@ -76,9 +80,15 @@ pass_insert() {
     return 1
   fi
   if [[ -n "$content" ]]; then
-    pass insert -m "$entry" <<EOF
+    if pass insert -m "$entry" <<EOF
 $content
 EOF
+    then
+      return 0
+    else
+      echo "Error: could not insert entry $entry" >&2
+      return 1
+    fi
   else
     pass insert "$entry" 2>/dev/null || { echo "Error: could not insert entry $entry" >&2; return 1; }
   fi
@@ -140,11 +150,17 @@ pass_create() {
     notify_error "Entry for '$user' at '$domain' already exists."
     return 1
   fi
-  pass insert -m "$entry" <<EOF
+  if pass insert -m "$entry" <<EOF
 $password
 username: $user
 EOF
-  notify_generate "Entry for '$user' at '$domain' created."
+  then
+    notify_generate "Entry for '$user' at '$domain' created."
+    return 0
+  else
+    notify_error "Failed to create entry for '$user' at '$domain'."
+    return 1
+  fi
 }
 
 # pass_update()
@@ -167,11 +183,17 @@ pass_update() {
     notify_error "Entry for '$user' at '$domain' does not exist."
     return 1
   fi
-  pass insert -m -f "$entry" <<EOF
+  if pass insert -m -f "$entry" <<EOF
 $password
 username: $user
 EOF
-  notify_update "Entry for '$user' at '$domain' updated."
+  then
+    notify_update "Entry for '$user' at '$domain' updated."
+    return 0
+  else
+    notify_error "Failed to update entry for '$user' at '$domain'."
+    return 1
+  fi
 }
 
 # pass_remove()
