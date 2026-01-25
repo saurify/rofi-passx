@@ -9,23 +9,23 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
 if ! declare -F pass_update >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 if ! declare -F notify_error >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
-        source "$SCRIPT_DIR/util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 if ! declare -F input_password_update >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_update_entry.sh" ]]; then
-        source "$SCRIPT_DIR/menu_update_entry.sh"
+    if [[ -f "$MENU_DIR/update_entry.sh" ]]; then
+        source "$MENU_DIR/update_entry.sh"
     fi
 fi
 if ! declare -F nav_push >/dev/null; then
-    if [[ -f "util_navigation.sh" ]]; then
-        source "util_navigation.sh"
+    if [[ -f "$UTIL_DIR/navigation.sh" ]]; then
+        source "$UTIL_DIR/navigation.sh"
     fi
 fi
 

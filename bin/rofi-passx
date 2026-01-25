@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Determine script directory for sourcing utilities (resolving symlinks)
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Export directory paths for other scripts to use
+export LIB_DIR="$ROOT_DIR/lib"
+export MENU_DIR="$LIB_DIR/menu"
+export UTIL_DIR="$LIB_DIR/util"
+
+# Configurable delimiter for navigation stack
+NAV_STACK_DELIM="|"
+
+# Persistent stack file for navigation
+STACK_FILE="/tmp/rofi-passx-stack"
+: > "$STACK_FILE"  # Clear stack file on app start
+
+# Source startup script
+source "$LIB_DIR/startup.sh"
+source "$UTIL_DIR/navigation.sh"
+source "$MENU_DIR/home.sh"
+
+# Run startup checks (dependencies, config, password store)
+if ! startup_initialize; then
+    rofi -e "rofi-passx: Startup failed. Please check your setup."
+    exit 1
+fi
+
+# Show the home menu
+home_menu

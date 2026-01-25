@@ -9,13 +9,13 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
 if ! declare -F pass_update >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 if ! declare -F notify_error >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
-        source "$SCRIPT_DIR/util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 

@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=rofi-passx
-Comment=Password manager Rofi launcher
-Exec=rofi-passx launch
+Comment=Rofi based password manager
+Exec=rofi-passx
 Icon=dialog-password
 Terminal=false
 Categories=Utility;Security; 

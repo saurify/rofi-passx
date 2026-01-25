@@ -6,56 +6,56 @@
 
 # Source utility functions if not already sourced
 if ! declare -F get_users_for_site >/dev/null; then
-    if [[ -f "util_pass.sh" ]]; then
-        source "util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 
 if ! declare -F notify_error >/dev/null; then
-    if [[ -f "util_notify.sh" ]]; then
-        source "util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 
 if ! declare -F input_password_create >/dev/null; then
-    if [[ -f "menu_add_entry.sh" ]]; then
-        source "menu_add_entry.sh"
+    if [[ -f "$MENU_DIR/add_entry.sh" ]]; then
+        source "$MENU_DIR/add_entry.sh"
     fi
 fi
 
 if ! declare -F input_password_update >/dev/null; then
-    if [[ -f "menu_update_entry.sh" ]]; then
-        source "menu_update_entry.sh"
+    if [[ -f "$MENU_DIR/update_entry.sh" ]]; then
+        source "$MENU_DIR/update_entry.sh"
     fi
 fi
 
 if ! declare -F edit_passwords_menu >/dev/null; then
-    if [[ -f "menu_edit_passwords.sh" ]]; then
-        source "menu_edit_passwords.sh"
+    if [[ -f "$MENU_DIR/edit_passwords.sh" ]]; then
+        source "$MENU_DIR/edit_passwords.sh"
     fi
 fi
 
 if ! declare -F delete_individual_entry >/dev/null; then
-    if [[ -f "menu_delete_entry.sh" ]]; then
-        source "menu_delete_entry.sh"
+    if [[ -f "$MENU_DIR/delete_entry.sh" ]]; then
+        source "$MENU_DIR/delete_entry.sh"
     fi
 fi
 
 if ! declare -F confirm >/dev/null; then
-    if [[ -f "menu_confirm_action.sh" ]]; then
-        source "menu_confirm_action.sh"
+    if [[ -f "$MENU_DIR/confirm_action.sh" ]]; then
+        source "$MENU_DIR/confirm_action.sh"
     fi
 fi
 
 if ! declare -F clipboard_copy >/dev/null; then
-    if [[ -f "util_clipboard.sh" ]]; then
-        source "util_clipboard.sh"
+    if [[ -f "$UTIL_DIR/clipboard.sh" ]]; then
+        source "$UTIL_DIR/clipboard.sh"
     fi
 fi
 
 if ! declare -F nav_push >/dev/null; then
-    if [[ -f "util_navigation.sh" ]]; then
-        source "util_navigation.sh"
+    if [[ -f "$UTIL_DIR/navigation.sh" ]]; then
+        source "$UTIL_DIR/navigation.sh"
     fi
 fi
 
