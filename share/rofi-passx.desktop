@@ -2,6 +2,7 @@
 Type=Application
 Name=rofi-passx
 Comment=Rofi based password manager
+Exec=rofi-passx
 Icon=dialog-password
 Terminal=false
 Categories=Utility;Security; 
