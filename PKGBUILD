@@ -13,7 +13,6 @@ source=("git+https://github.com/saurify/rofi-passx.git")
 sha256sums=('SKIP') 
 
 package() {
-    cp $srcdir/rofi-passx/bin "$pkgdir/usr/bin/rofi-passx/bin"
-    cp $srcdir/rofi-passx/lib "$pkgdir/usr/bin/rofi-passx/lib"
-    cp $srcdir/rofi-passx/share "$pkgdir/usr/bin/rofi-passx/share"
+    cd $srcdir/rofi-passx
+    make install
 }
