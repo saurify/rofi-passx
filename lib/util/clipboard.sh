@@ -3,7 +3,7 @@
 # Uses: ~/.config/rofi-passx/config for clipboard tool preferences
 
 # Source notification utilities
-source util_notify.sh
+source "$UTIL_DIR/notify.sh"
 
 # clipboard_copy()
 #   Copies text to clipboard using available tools.

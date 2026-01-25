@@ -2,7 +2,7 @@
 Type=Application
 Name=rofi-passx
 Comment=Password manager Rofi launcher
-Exec=rofi-passx launch
+Exec=rofi -show passx -modi "passx:rofi-passx"
 Icon=dialog-password
 Terminal=false
 Categories=Utility;Security; 

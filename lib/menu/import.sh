@@ -5,8 +5,8 @@
 # Source dependencies
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 if ! declare -F pass_import_csv >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 

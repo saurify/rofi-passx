@@ -7,18 +7,18 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
 if ! declare -F config_open > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_config.sh" ]]; then
-        source "$SCRIPT_DIR/util_config.sh"
+    if [[ -f "$UTIL_DIR/config.sh" ]]; then
+        source "$UTIL_DIR/config.sh"
     fi
 fi
 if ! declare -F gpg_settings_menu > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_gpg_settings.sh" ]]; then
-        source "$SCRIPT_DIR/menu_gpg_settings.sh"
+    if [[ -f "$MENU_DIR/gpg_settings.sh" ]]; then
+        source "$MENU_DIR/gpg_settings.sh"
     fi
 fi
 if ! declare -F nav_push > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_navigation.sh" ]]; then
-        source "$SCRIPT_DIR/util_navigation.sh"
+    if [[ -f "$UTIL_DIR/navigation.sh" ]]; then
+        source "$UTIL_DIR/navigation.sh"
     fi
 fi
 

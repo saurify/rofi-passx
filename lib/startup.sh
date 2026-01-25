@@ -4,13 +4,15 @@
 
 # Source all utilities relative to this script's location
 # shellcheck source=/dev/null
-source util_notify.sh
+source "$UTIL_DIR/notify.sh"
 # shellcheck source=/dev/null
-source util_gpg.sh
+source "$UTIL_DIR/gpg.sh"
 # shellcheck source=/dev/null
-source util_pass.sh
+source "$UTIL_DIR/pass.sh"
 # shellcheck source=/dev/null
-source util_clipboard.sh
+source "$UTIL_DIR/clipboard.sh"
+# shellcheck source=/dev/null
+source "$UTIL_DIR/config.sh"
 
 
 # startup_check_dependencies()
@@ -105,7 +107,7 @@ startup_check_gpg_keys() {
     if [[ "$choice" == "Create GPG Key" ]]; then
       # Source the add entry menu for input_gpg_create
       if ! declare -F input_gpg_create > /dev/null; then
-        source menu_add_entry.sh
+        source "$MENU_DIR/add_entry.sh"
       fi
       
       if input_gpg_create; then

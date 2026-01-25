@@ -2,7 +2,7 @@
 # gpg.sh — GPG key management utilities
 
 # Source notification utilities
-source util_notify.sh
+source "$UTIL_DIR/notify.sh"
 
 # gpg_check()
 #   Checks if GPG is installed and available.

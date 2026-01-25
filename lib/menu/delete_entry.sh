@@ -8,23 +8,23 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
 if ! declare -F pass_remove >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 if ! declare -F notify_delete >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
-        source "$SCRIPT_DIR/util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 if ! declare -F confirm >/dev/null; then # Changed from confirm_action to confirm as per original usage
-    if [[ -f "$SCRIPT_DIR/menu_confirm_action.sh" ]]; then
-        source "$SCRIPT_DIR/menu_confirm_action.sh"
+    if [[ -f "$MENU_DIR/confirm_action.sh" ]]; then
+        source "$MENU_DIR/confirm_action.sh"
     fi
 fi
 if ! declare -F nav_push >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_navigation.sh" ]]; then
-        source "$SCRIPT_DIR/util_navigation.sh"
+    if [[ -f "$UTIL_DIR/navigation.sh" ]]; then
+        source "$UTIL_DIR/navigation.sh"
     fi
 fi
 
@@ -163,7 +163,7 @@ delete_all_sites_menu() {
     # Build menu items
     site_items=()
     while read -r site; do
-        [[ -n "$site" ]] && site_items+=("$site")
+        [[ -n "$site" ]] && site_items+=("🌐 $site")
     done <<< "$sites"
     site_items+=("↩ Back")
 
@@ -178,5 +178,6 @@ delete_all_sites_menu() {
 
     # Navigate to delete_site_menu for selected site
     nav_push delete_all_sites_menu
+    site_sel="${site_sel#🌐 }"
     delete_site_menu "$site_sel"
 }

@@ -3,10 +3,10 @@
 # Uses: ~/.config/rofi-passx/config for configuration
 
 # Source gpg utilities for gpg_get_first_key
-source util_gpg.sh
+source "$UTIL_DIR/gpg.sh"
 
 # Source notification utilities
-source util_notify.sh
+source "$UTIL_DIR/notify.sh"
 
 # pass_check()
 #   Checks if pass command is available.

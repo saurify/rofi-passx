@@ -3,55 +3,54 @@
 # Provides: home_menu
 
 # Source utility functions if not already sourced
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 if ! declare -F site_menu >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_site.sh" ]]; then
-        source "$SCRIPT_DIR/menu_site.sh"
+    if [[ -f "$MENU_DIR/site.sh" ]]; then
+        source "$MENU_DIR/site.sh"
     fi
 fi
 if ! declare -F pass_import_csv >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 if ! declare -F notify_error >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
-        source "$SCRIPT_DIR/util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 if ! declare -F confirm >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_confirm_action.sh" ]]; then
-        source "$SCRIPT_DIR/menu_confirm_action.sh"
+    if [[ -f "$MENU_DIR/confirm_action.sh" ]]; then
+        source "$MENU_DIR/confirm_action.sh"
     fi
 fi
 if ! declare -F delete_site_menu >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_delete_entry.sh" ]]; then
-        source "$SCRIPT_DIR/menu_delete_entry.sh"
+    if [[ -f "$MENU_DIR/delete_entry.sh" ]]; then
+        source "$MENU_DIR/delete_entry.sh"
     fi
 fi
 if ! declare -F nav_push >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_navigation.sh" ]]; then
-        source "$SCRIPT_DIR/util_navigation.sh"
+    if [[ -f "$UTIL_DIR/navigation.sh" ]]; then
+        source "$UTIL_DIR/navigation.sh"
     fi
 fi
 if ! declare -F config_open >/dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_config.sh" ]]; then
-        source "$SCRIPT_DIR/util_config.sh"
+    if [[ -f "$UTIL_DIR/config.sh" ]]; then
+        source "$UTIL_DIR/config.sh"
     fi
 fi
 if ! declare -F input_add_entry > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_add_entry.sh" ]]; then
-        source "$SCRIPT_DIR/menu_add_entry.sh"
+    if [[ -f "$MENU_DIR/add_entry.sh" ]]; then
+        source "$MENU_DIR/add_entry.sh"
     fi
 fi
 if ! declare -F settings_menu > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_settings.sh" ]]; then
-        source "$SCRIPT_DIR/menu_settings.sh"
+    if [[ -f "$MENU_DIR/settings.sh" ]]; then
+        source "$MENU_DIR/settings.sh"
     fi
 fi
 if ! declare -F import_passwords_menu > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_import.sh" ]]; then
-        source "$SCRIPT_DIR/menu_import.sh"
+    if [[ -f "$MENU_DIR/import.sh" ]]; then
+        source "$MENU_DIR/import.sh"
     fi
 fi
 

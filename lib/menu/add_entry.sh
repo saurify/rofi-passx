@@ -7,23 +7,23 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Source utility functions if not already sourced
 if ! declare -F pass_create > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_pass.sh" ]]; then
-        source "$SCRIPT_DIR/util_pass.sh"
+    if [[ -f "$UTIL_DIR/pass.sh" ]]; then
+        source "$UTIL_DIR/pass.sh"
     fi
 fi
 if ! declare -F gpg_key_generate > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_gpg.sh" ]]; then
-        source "$SCRIPT_DIR/util_gpg.sh"
+    if [[ -f "$UTIL_DIR/gpg.sh" ]]; then
+        source "$UTIL_DIR/gpg.sh"
     fi
 fi
 if ! declare -F notify_error > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/util_notify.sh" ]]; then
-        source "$SCRIPT_DIR/util_notify.sh"
+    if [[ -f "$UTIL_DIR/notify.sh" ]]; then
+        source "$UTIL_DIR/notify.sh"
     fi
 fi
 if ! declare -F confirm > /dev/null; then
-    if [[ -f "$SCRIPT_DIR/menu_confirm_action.sh" ]]; then
-        source "$SCRIPT_DIR/menu_confirm_action.sh"
+    if [[ -f "$MENU_DIR/confirm_action.sh" ]]; then
+        source "$MENU_DIR/confirm_action.sh"
     fi
 fi
 

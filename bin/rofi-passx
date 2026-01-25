@@ -8,6 +8,12 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Export directory paths for other scripts to use
+export LIB_DIR="$ROOT_DIR/lib"
+export MENU_DIR="$LIB_DIR/menu"
+export UTIL_DIR="$LIB_DIR/util"
 
 # Configurable delimiter for navigation stack
 NAV_STACK_DELIM="|"
@@ -16,11 +22,10 @@ NAV_STACK_DELIM="|"
 STACK_FILE="/tmp/rofi-passx-stack"
 : > "$STACK_FILE"  # Clear stack file on app start
 
-# Source only what is needed
-    source "$SCRIPT_DIR/util_config.sh"
-    source "$SCRIPT_DIR/util_startup.sh"
-source "$SCRIPT_DIR/menu_home.sh"
-source "$SCRIPT_DIR/util_navigation.sh"
+# Source startup script
+source "$LIB_DIR/startup.sh"
+source "$UTIL_DIR/navigation.sh"
+source "$MENU_DIR/home.sh"
 
 # Run startup checks (dependencies, config, password store)
 if ! startup_initialize; then
