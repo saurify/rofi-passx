@@ -49,6 +49,11 @@ if ! declare -F settings_menu > /dev/null; then
         source "$SCRIPT_DIR/menu_settings.sh"
     fi
 fi
+if ! declare -F import_passwords_menu > /dev/null; then
+    if [[ -f "$SCRIPT_DIR/menu_import.sh" ]]; then
+        source "$SCRIPT_DIR/menu_import.sh"
+    fi
+fi
 
 # home_menu()
 #   Shows the main menu: lists all sites, import CSV, delete site, back.
@@ -98,30 +103,6 @@ home_menu() {
     esac
 }
 
-# import_passwords_menu()
-#   Shows a menu to select a CSV file from configured import dir (default: ~/Downloads) and imports it.
-#   Args:
-#     None
-#   Returns:
-#     0 on success
-#     1 on failure
-import_passwords_menu() {
-    local csv_dir="${PASSWORD_IMPORT_DIR:-$HOME/Downloads}"
-    local csv_files csv_items csv_sel
-    csv_files=$(ls -1 "$csv_dir"/*.csv 2>/dev/null)
-    csv_items=()
-    for f in $csv_files; do
-        csv_items+=("$(basename "$f")")
-    done
-    csv_items+=("↩ Back")
-    csv_sel=$(printf "%s\n" "${csv_items[@]}" | rofi -dmenu -p "Select CSV to import:" -mesg "Choose a CSV file from $csv_dir")
-    if [[ -z "$csv_sel" || "$csv_sel" == "↩ Back" ]]; then
-        home_menu
-        return 1
-    fi
-    pass_import_csv "$csv_dir/$csv_sel"
-    home_menu
-}
 
 # If run directly, call home_menu
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

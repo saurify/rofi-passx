@@ -55,30 +55,42 @@ sudo apt install pass rofi gnupg xclip libnotify-bin
 ---
 
 ## Installation
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/saurify/rofi-passx.git
-   cd rofi-passx
-   ```
-
-2. **Install dependencies:**
-   - See the prerequisites above for the full list of required tools.
-
-3. **Make scripts executable:**
-   ```sh
-   chmod +x rofi-passx rofi-passx-setup *.sh
-   ```
-
-4. **(Optional) Add to your PATH:**
-   ```sh
-   sudo cp rofi-passx /usr/local/bin/
-   ```
-
-**Alternative: Install via PKGBUILD (Arch Linux/Manjaro):**
-```sh
-makepkg -si
-```
+ 
+ 1. **Clone the repository:**
+    ```sh
+    git clone https://github.com/saurify/rofi-passx.git
+    cd rofi-passx
+    ```
+ 
+ 2. **Install dependencies:**
+    - **Arch Linux:**
+      ```sh
+      sudo pacman -S rofi pass gnupg xclip libnotify
+      ```
+    - **Debian/Ubuntu:**
+      ```sh
+      sudo apt install rofi pass gpg xclip libnotify-bin
+      ```
+    - **Fedora:**
+      ```sh
+      sudo dnf install rofi pass gnupg xclip libnotify
+      ```
+ 
+ 3. **Install:**
+    ```sh
+    sudo make install
+    ```
+    This installs `rofi-passx` to `/usr/bin/` and supporting scripts to `/usr/lib/rofi-passx/`.
+ 
+ 4. **(Optional) Uninstall:**
+    ```sh
+    sudo make uninstall
+    ```
+ 
+ **Alternative: Install via PKGBUILD (Arch Linux/Manjaro):**
+ ```sh
+ makepkg -si
+ ```
 
 ---
 

@@ -230,7 +230,7 @@ delete_gpg_key_ui() {
     
     # First confirmation using existing confirm() function
     local warning_msg="⚠️ DANGER: You are about to PERMANENTLY DELETE:
-$escaped_uid_for_confirm (Key: $selected_key)
+$selected_uid (Key: $selected_key)
 
 This action CANNOT be undone!
 If you have any data encrypted with this key OUTSIDE of this password store,
