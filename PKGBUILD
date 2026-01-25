@@ -13,9 +13,7 @@ source=("git+https://github.com/saurify/rofi-passx.git")
 sha256sums=('SKIP') 
 
 package() {
-    install -Dm755 bin/rofi-passx "$pkgdir/usr/bin/rofi-passx"
-    install -d "$pkgdir/usr/share/rofi-passx"
-    cp -r lib "$pkgdir/usr/share/rofi-passx/lib"
-
-    install -Dm644 share/rofi-passx.desktop "$pkgdir/usr/share/applications/rofi-passx.desktop"
+    cp $srcdir/rofi-passx/bin "$pkgdir/usr/bin/rofi-passx/bin"
+    cp $srcdir/rofi-passx/lib "$pkgdir/usr/bin/rofi-passx/lib"
+    cp $srcdir/rofi-passx/share "$pkgdir/usr/bin/rofi-passx/share"
 }
