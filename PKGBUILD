@@ -14,5 +14,5 @@ sha256sums=('SKIP')
 
 package() {
     cd $srcdir/rofi-passx
-    make install DESTDIR="$pkgdir"
+    make install PREFIX=/usr DESTDIR="$pkgdir"
 }
