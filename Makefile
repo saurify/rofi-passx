@@ -1,4 +1,4 @@
-PREFIX ?= $(HOME)/.local
+PREFIX ?= /usr/local
 INSTALL_DIR ?= $(PREFIX)/share/rofi-passx
 BINDIR ?= $(PREFIX)/bin
 DATADIR ?= $(PREFIX)/share
