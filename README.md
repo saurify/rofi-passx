@@ -15,7 +15,7 @@ Before installing, ensure you have the following installed on your system:
 
 ## Installation
 
-### Option 1: Manual Installation (Universal / Preferred)
+### Option 1: Manual Installation (Universal)
 
 1.  **Clone the repository:**
     ```bash
