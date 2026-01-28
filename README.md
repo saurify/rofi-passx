@@ -68,6 +68,11 @@ You can add, edit, or delete entries directly from the menu.
 *   **Edit**: Modify existing entries.
 *   **Delete**: Remove entries (requires confirmation).
 
-
 #### Import
 Import credentials from CSV files (You can import passwords from browser generated csv files).
+
+### Screenshots for reference
+<img width="641" height="457" alt="image" src="https://github.com/user-attachments/assets/962fae11-d3f2-4a35-bd84-e50439dc7975" />
+<img width="650" height="469" alt="image" src="https://github.com/user-attachments/assets/4ea64006-b580-4a4b-a394-1d187f318e22" />
+<img width="638" height="454" alt="image" src="https://github.com/user-attachments/assets/ba61ccab-393d-469c-a5f6-53847be88450" />
+
