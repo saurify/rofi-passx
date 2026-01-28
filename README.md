@@ -59,9 +59,6 @@ rofi-passx
 #### Browsing & Searching
 Navigate through your password hierarchy using the keyboard. Type to filter entries.
 
-#### Copying Credentials
-Select an entry to view options for copying the password or username to your clipboard. The clipboard is automatically cleared after a set timeout.
-
 #### Managing Entries
 You can add, edit, or delete entries directly from the menu.
 *   **Add**: Create new entries with generated or manual passwords.
